@@ -71,6 +71,38 @@ db.nodes.aggregate([
 ])
 ```
 
+## The live demo
+
+The room becomes the building site. A QR code on the main screen opens the phone page, and **every phone
+becomes one real piece of equipment** in the demo building: a document in the `nodes` collection, such as
+`AHU-07`, a 15 kW air handling unit fed from board `DB-L3-01`.
+
+| Beat | What the room sees | What MongoDB does |
+| --- | --- | --- |
+| Switch on, add 5 kW | Load bars move on every screen within a second | A write to `nodes`; the change stream pushes it out; one aggregation recomputes every board's load |
+| Pile on | `DB-L3-01` goes amber, then red: OVERLOAD | `$graphLookup` downstream + `$sum` of switched-on load, stopping at tripped boards |
+| Bad re-wire | 3-phase kit onto a single-phase board is rejected on the phone that tried it | App validation on `$graphLookup` (circular feed, phase, overload upstream) |
+| Trip `SMSB-B` | Half the room's phones flash **YOU'VE LOST POWER** | `$graphLookup` finds everything downstream of the tripped board |
+| Trace | Tap any item: the feed path back to the main switchboard lights up | `$graphLookup` upstream |
+| Hospital | A 4,257-node, 12-storey hospital: shutdown impact report with critical loads flagged, a messy 4,269-row cable schedule import with 24 rows rejected | The same queries at scale; `explain()` supplies the query time on screen |
+
+![Main screen: the demo building as a live tree, with load bars and the join QR](docs/screen-demo.png)
+
+<img src="docs/phone.png" alt="Phone page: one claimed piece of equipment with switch, +5 kW and re-wire controls" width="260">
+
+## What is real
+
+- **The system is real.** A live MongoDB Atlas database; every trace, load figure, rejection and trip you see is a query or a write against it, and every screen reads it back through change streams. Nothing on the screen is animated by hand.
+- **Every node stands for a real thing.** One document is one physical board or one piece of equipment, linked to whatever feeds it, exactly as in a cable schedule.
+- **The buildings are modelled.** Real cable schedules are confidential (and a hospital's power layout is security-sensitive), so the 60-node office and the 12-storey hospital are generated to match how real ones are laid out. The import accepts the columns of a real cable schedule, so pointing PowerTrace at a real building means importing its schedule; nothing else changes.
+
+## Presentation
+
+The 3-minute deck lives in [`/pitch`](pitch/index.html) and is served by the backend at **`/pitch`**, so its
+QR code always points at the same server's `/join`. Arrow keys move, `F` goes fullscreen.
+
+![The deck's MongoDB slide: one document per board, linked by parentId and walked by $graphLookup](docs/pitch-graph.png)
+
 ## Architecture
 
 ```text
@@ -109,6 +141,7 @@ A second collection, `events`, logs every change (who, what, from, to, when). Th
 | [`/join`](join) | The phone page (no app install, no build step) |
 | [`/bot`](bot) | Simulated contractors for load testing and as a demo fallback; QR code printer |
 | [`/data`](data) | Demo building, 4,000-item hospital generator, messy cable schedule CSV, seed scripts |
+| [`/pitch`](pitch) | The 3-minute deck, served at `/pitch` |
 | [`/mock`](mock) | In-memory implementation of the contract, so the frontends can be built before the real backend is live |
 | [`CONTRACT.md`](CONTRACT.md) | The API, data model and Socket.IO events every part builds against |
 
@@ -139,6 +172,16 @@ npm run bot
 ```
 
 To let phones join from outside your laptop, expose port 3000 with a tunnel (for example `cloudflared tunnel --url http://localhost:3000`) and print a QR code with `npm run qr -- https://<your-tunnel-url>/join`.
+
+### See everything on one laptop
+
+```bash
+npm run build:screen          # build the main screen once
+npm run backend               # (or npm run mock without Atlas)
+```
+
+Then open `http://localhost:3000/` (main screen, press F11 for full screen), `http://localhost:3000/join`
+(a phone, open several tabs) and `http://localhost:3000/pitch` (the deck; with the mock, open `pitch/index.html` directly, without the live QR).
 
 ## Deploying
 

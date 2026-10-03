@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PowerTrace Pitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a fixed 1600x900 stage scaled to the window; one idea per slide, left-aligned, YC-plain. */
+:root {
+  --paper: #f6f6ef;      /* Hacker News beige */
+  --ink: #1b1b16;
+  --muted: #6c6c62;
+  --rule: #dcdcd0;
+  --orange: #ff6600;     /* the one accent: live power, the traced path */
+  --dead: #c3c3b6;       /* de-energised */
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--display); overflow: hidden; }
+.viewport { position: fixed; inset: 0; overflow: hidden; }
+.stage { width: 1600px; height: 900px; position: absolute; left: 50%; top: 50%; transform-origin: center center; transform: translate(-50%, -50%); }
+.slide { position: absolute; inset: 0; padding: 96px 120px 88px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px; opacity: 0; pointer-events: none; transition: opacity .35s ease; background: var(--paper); }
+.slide.on { opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
+
+.eyebrow { font-family: var(--mono); font-size: 22px; letter-spacing: .08em; text-transform: uppercase; color: var(--orange); }
+h1 { font-size: 132px; line-height: .95; font-weight: 800; letter-spacing: -.035em; margin: 0; text-wrap: balance; }
+h2 { font-size: 76px; line-height: 1.02; font-weight: 800; letter-spacing: -.03em; margin: 0; text-wrap: balance; max-width: 1300px; }
+.lede { font-size: 34px; line-height: 1.35; color: var(--muted); max-width: 1100px; margin: 0; }
+.mono { font-family: var(--mono); white-space: nowrap; }
+.hl { color: var(--orange); }
+.foot { position: absolute; left: 120px; right: 120px; bottom: 40px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 18px; color: var(--muted); }
+.mark { display: inline-flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); font-family: var(--display); font-size: 22px; }
+.mark i { width: 22px; height: 22px; background: var(--orange); display: inline-block; }
+
+/* Title */
+.title-grid { display: grid; grid-template-columns: 1fr 300px; gap: 80px; align-items: end; flex: 1; }
+.qr { width: 300px; display: flex; flex-direction: column; gap: 14px; }
+.qr-box { width: 300px; height: 300px; background: #fff; border: 2px solid var(--ink); display: grid; place-items: center; }
+.qr-box svg { width: 100%; height: 100%; }
+.qr-box .ph { font-family: var(--mono); font-size: 17px; color: var(--muted); text-align: center; padding: 24px; line-height: 1.4; }
+.qr-cap { font-family: var(--mono); font-size: 20px; color: var(--ink); }
+.qr-url { font-family: var(--mono); font-size: 16px; color: var(--muted); word-break: break-all; }
+.team { font-family: var(--mono); font-size: 22px; color: var(--muted); }
+
+/* Problem: five documents */
+.docs { display: flex; gap: 20px; margin-top: 18px; }
+.doc { flex: 1; border: 2px solid var(--ink); background: #fff; padding: 26px 24px; display: flex; flex-direction: column; gap: 14px; min-height: 180px; }
+.doc b { font-size: 28px; letter-spacing: -.01em; }
+.doc span { font-family: var(--mono); font-size: 18px; color: var(--muted); line-height: 1.45; }
+.quote { font-size: 38px; line-height: 1.3; max-width: 1250px; margin: 0; }
+.quote cite { display: block; font-style: normal; font-family: var(--mono); font-size: 20px; color: var(--muted); margin-top: 16px; }
+
+/* Primer chain */
+.chain { display: flex; align-items: stretch; gap: 0; margin-top: 24px; }
+.link { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+.node { border: 2px solid var(--ink); background: #fff; padding: 24px; display: flex; flex-direction: column; gap: 10px; height: 230px; box-sizing: border-box; }
+.node .tag { font-family: var(--mono); font-size: 22px; color: var(--orange); }
+.node b { font-size: 32px; letter-spacing: -.01em; }
+.node span { font-size: 22px; color: var(--muted); line-height: 1.35; }
+.arrow { width: 56px; display: grid; place-items: center; font-size: 40px; color: var(--ink); height: 230px; }
+.rule-note { display: flex; gap: 40px; margin-top: 30px; font-size: 30px; line-height: 1.35; }
+.rule-note div { flex: 1; border-top: 3px solid var(--ink); padding-top: 18px; }
+.rule-note b { display: block; font-size: 22px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--orange); margin-bottom: 8px; font-weight: 500; }
+
+/* Graph slide */
+.graph-grid { display: grid; grid-template-columns: 560px 1fr; gap: 64px; flex: 1; align-items: start; }
+pre.json { margin: 0; background: var(--ink); color: #f6f6ef; font-family: var(--mono); font-size: 21px; line-height: 1.55; padding: 30px 32px; white-space: pre; }
+pre.json .k { color: #b9b9a8; }
+pre.json .o { color: var(--orange); }
+.graph-cap { font-size: 26px; line-height: 1.4; color: var(--muted); margin: 18px 0 0; }
+.graph-cap code { font-family: var(--mono); color: var(--ink); }
+svg.tree text { font-family: var(--mono); }
+
+/* Join slide */
+.join-grid { display: grid; grid-template-columns: 1fr 380px; gap: 80px; flex: 1; align-items: center; }
+.phone-card { border: 2px solid var(--ink); background: #fff; padding: 30px; display: flex; flex-direction: column; gap: 18px; }
+.phone-card .who { font-size: 30px; line-height: 1.3; }
+.phone-card .btns { display: flex; flex-direction: column; gap: 12px; }
+.phone-card .btns span { border: 2px solid var(--ink); padding: 14px 18px; font-family: var(--mono); font-size: 20px; }
+.phone-card .btns span:first-child { background: var(--orange); border-color: var(--orange); color: #fff; }
+.steps { display: flex; flex-direction: column; gap: 22px; font-size: 34px; line-height: 1.3; margin: 10px 0 0; padding: 0; list-style: none; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 64px 1fr; align-items: baseline; }
+.steps li::before { content: counter(s); font-family: var(--mono); color: var(--orange); font-size: 30px; }
+
+/* Live slide */
+.beats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; margin-top: 18px; }
+.beat { border-top: 4px solid var(--ink); padding-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+.beat b { font-size: 30px; letter-spacing: -.01em; }
+.beat span { font-size: 21px; color: var(--muted); line-height: 1.4; }
+.beat em { font-style: normal; font-family: var(--mono); font-size: 18px; color: var(--orange); }
+
+/* Scale */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink); margin-top: 18px; }
+.stat { padding: 30px 24px 30px 0; display: flex; flex-direction: column; gap: 6px; }
+.stat + .stat { padding-left: 28px; border-left: 1px solid var(--rule); }
+.stat b { font-size: 84px; font-weight: 800; letter-spacing: -.04em; font-variant-numeric: tabular-nums; line-height: 1; }
+.stat span { font-family: var(--mono); font-size: 20px; color: var(--muted); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-top: 10px; font-size: 28px; line-height: 1.4; }
+.two b { display: block; font-size: 22px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--orange); font-weight: 500; margin-bottom: 8px; }
+
+/* Why MongoDB */
+table.why { border-collapse: collapse; width: 100%; font-size: 28px; margin-top: 8px; }
+table.why td { padding: 18px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.why td:first-child { font-family: var(--mono); font-size: 25px; width: 470px; color: var(--ink); }
+table.why tr:first-child td { border-top: 3px solid var(--ink); }
+
+/* Close */
+.close-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; margin-top: 12px; }
+.close-grid h3 { font-family: var(--mono); font-size: 22px; letter-spacing: .06em; text-transform: uppercase; color: var(--orange); margin: 0 0 14px; font-weight: 500; }
+.close-grid ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 29px; line-height: 1.35; }
+.close-grid li { padding-left: 30px; position: relative; }
+.close-grid li::before { content: ""; position: absolute; left: 0; top: .5em; width: 12px; height: 12px; background: var(--ink); }
+
+.progress { position: fixed; left: 0; bottom: 0; height: 5px; background: var(--orange); transition: width .3s ease; }
+.hint { position: fixed; right: 16px; bottom: 14px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+button.nav { position: fixed; top: 0; bottom: 0; width: 18%; background: transparent; border: 0; cursor: pointer; }
+button.nav.prev { left: 0; } button.nav.next { right: 0; }
+button.nav:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
+</style>
+</head>
+<body>
+
+<div class="viewport"><div class="stage" id="stage">
+
+  <!-- 1. Title (QR up from the first second, so phones join while Fortune talks) -->
+  <section class="slide on" data-s="title">
+    <div class="eyebrow">MongoDB × Give(a)Go Builder Day · Dublin</div>
+    <div class="title-grid">
+      <div style="display:flex;flex-direction:column;gap:30px">
+        <h1>PowerTrace</h1>
+        <p class="lede" style="font-size:40px;color:var(--ink)">Every circuit in a building, traced forwards and backwards in milliseconds.</p>
+        <div class="team">Fortune · Arush · Alex · Matthew</div>
+      </div>
+      <div class="qr">
+        <div class="qr-box" data-qr></div>
+        <div class="qr-cap">Scan now. You're about to become a piece of equipment.</div>
+        <div class="qr-url" data-qr-url></div>
+      </div>
+    </div>
+    <div class="foot"><span class="mark"><i></i>PowerTrace</span><span>01</span></div>
+  </section>
+
+  <!-- 2. Problem -->
+  <section class="slide" data-s="problem">
+    <div class="eyebrow">The problem</div>
+    <h2>"What does board <span class="mono hl">DB-L3-01</span> actually feed?"</h2>
+    <p class="lede">On a construction site, the answer is spread across five documents, kept by different contractors, and out of date by lunchtime.</p>
+    <div class="docs">
+      <div class="doc"><b>Cable schedule</b><span>which cable feeds what, row by row</span></div>
+      <div class="doc"><b>Panel schedule</b><span>what's on each way of each board</span></div>
+      <div class="doc"><b>Single-line diagram</b><span>the drawing, as designed</span></div>
+      <div class="doc"><b>Spreadsheets</b><span>one per contractor</span></div>
+      <div class="doc"><b>PDFs</b><span>marked up by hand on site</span></div>
+    </div>
+    <div class="foot"><span class="mark"><i></i>PowerTrace</span><span>02</span></div>
+  </section>
+
+  <!-- 3. Primer: zero to switchboard in 30 seconds -->
+  <section class="slide" data-s="primer">
+    <div class="eyebrow">How a building gets its power</div>
+    <h2>Power flows down a tree.</h2>
+    <div class="chain">
+      <div class="link"><div class="node"><span class="tag">MSB</span><b>Main switchboard</b><span>Where power enters the building</span></div></div>
+      <div class="arrow">→</div>
+      <div class="link"><div class="node"><span class="tag">SMSB-B</span><b>Sub-main board</b><span>Feeds one riser, several floors</span></div></div>
+      <div class="arrow">→</div>
+      <div class="link"><div class="node"><span class="tag">DB-L3-01</span><b>Distribution board</b><span>One per floor or area</span></div></div>
+      <div class="arrow">→</div>
+      <div class="link"><div class="node"><span class="tag">AHU-07</span><b>Equipment</b><span>Air handler, lights, a lift, a ventilator</span></div></div>
+    </div>
+    <div class="rule-note">
+      <div><b>Trip</b>A board switches off. Everything below it goes dark.</div>
+      <div><b>Overload</b>Too much switched on below a board. It trips.</div>
+      <div><b>The question</b>Before you switch anything off: what's downstream?</div>
+    </div>
+    <div class="foot"><span class="mark"><i></i>PowerTrace</span><span>03</span></div>
+  </section>
+
+  <!-- 4. The graph IS the building -->
+  <section class="slide" data-s="graph">
+    <div class="eyebrow">MongoDB Atlas</div>
+    <h2>One document per board. The database is the wiring.</h2>
+    <div class="graph-grid">
+      <div>
+<pre class="json"><span class="k">{</span>
+  <span class="k">"_id":</span>      "AHU-07",
+  <span class="k">"type":</span>     "equipment",
+  <span class="k">"parentId":</span> <span class="o">"DB-L3-01"</span>,
+  <span class="k">"phases":</span>   3,
+  <span class="k">"loadKW":</span>   15,
+  <span class="k">"on":</span>       true
+<span class="k">}</span></pre>
+        <p class="graph-cap">One field, <code>parentId</code>, points at whatever feeds it. <code>$graphLookup</code> walks those links inside the database: down for "what loses power?", up for "what feeds this?"</p>
+      </div>
+      <svg class="tree" viewBox="0 0 860 560" role="img" aria-label="Tracing downstream of DB-L3-01 highlights everything it feeds">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#ff6600"/></marker></defs>
+        <!-- edges -->
+        <g stroke="#1b1b16" stroke-width="2" fill="none">
+          <path d="M430 74 V110 H210 V146"/><path d="M430 110 H650 V146"/>
+          <path d="M210 196 V232 H110 V268"/><path d="M210 232 H310 V268"/>
+          <path d="M650 196 V232 H540 V268"/>
+        </g>
+        <g stroke="#ff6600" stroke-width="4" fill="none">
+          <path d="M650 232 H760 V268"/>
+          <path d="M760 318 V356 H620 V392"/><path d="M760 356 H720 V392"/><path d="M760 356 H820 V392"/>
+          <path d="M760 356 V420" opacity="0"/>
+        </g>
+        <!-- nodes -->
+        <g font-size="19" text-anchor="middle">
+          <rect x="350" y="24" width="160" height="50" fill="#fff" stroke="#1b1b16" stroke-width="2"/><text x="430" y="56" fill="#1b1b16">MSB</text>
+          <rect x="130" y="146" width="160" height="50" fill="#fff" stroke="#1b1b16" stroke-width="2"/><text x="210" y="178" fill="#1b1b16">SMSB-A</text>
+          <rect x="570" y="146" width="160" height="50" fill="#fff" stroke="#1b1b16" stroke-width="2"/><text x="650" y="178" fill="#1b1b16">SMSB-B</text>
+          <rect x="40" y="268" width="140" height="50" fill="#fff" stroke="#1b1b16" stroke-width="2"/><text x="110" y="300" fill="#1b1b16">DB-L1-01</text>
+          <rect x="240" y="268" width="140" height="50" fill="#fff" stroke="#1b1b16" stroke-width="2"/><text x="310" y="300" fill="#1b1b16">DB-L2-01</text>
+          <rect x="470" y="268" width="140" height="50" fill="#fff" stroke="#1b1b16" stroke-width="2"/><text x="540" y="300" fill="#1b1b16">DB-L2-02</text>
+          <rect x="680" y="268" width="160" height="50" fill="#ff6600" stroke="#ff6600" stroke-width="2"/><text x="760" y="300" fill="#fff" font-weight="500">DB-L3-01</text>
+          <rect x="566" y="392" width="108" height="46" fill="#fff" stroke="#ff6600" stroke-width="3"/><text x="620" y="422" fill="#1b1b16" font-size="17">AHU-07</text>
+          <rect x="680" y="392" width="80" height="46" fill="#fff" stroke="#ff6600" stroke-width="3"/><text x="720" y="422" fill="#1b1b16" font-size="17">HP-01</text>
+          <rect x="770" y="392" width="88" height="46" fill="#fff" stroke="#ff6600" stroke-width="3"/><text x="814" y="422" fill="#1b1b16" font-size="17">PMP-03</text>
+        </g>
+        <text x="40" y="500" font-size="20" fill="#6c6c62">{ $graphLookup: { startWith: "$_id",</text>
+        <text x="40" y="530" font-size="20" fill="#6c6c62">  connectFromField: "_id", connectToField: "parentId" } }</text>
+      </svg>
+    </div>
+    <div class="foot"><span class="mark"><i></i>PowerTrace</span><span>04</span></div>
+  </section>
+
+  <!-- 5. Join -->
+  <section class="slide" data-s="join">
+    <div class="eyebrow">Your phone is now on the site</div>
+    <div class="join-grid">
+      <div style="display:flex;flex-direction:column;gap:26px">
+        <h2>Every phone in this room is one real piece of equipment.</h2>
+        <ol class="steps">
+          <li>Switch it on. Its board's load goes up.</li>
+          <li>Add 5 kW. Like a contractor plugging in a welder.</li>
+          <li>Re-wire it to another board. The system checks it first.</li>
+        </ol>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <div class="phone-card">
+          <div class="who">You are <b class="mono">AHU-07</b>, a 15 kW air handling unit fed from <span class="mono">DB-L3-01</span>.</div>
+          <div class="btns"><span>Switch on</span><span>+5 kW</span><span>Re-wire to…</span></div>
+        </div>
+        <div class="qr" style="flex-direction:row;align-items:center;width:auto;gap:18px">
+          <div class="qr-box" data-qr style="width:132px;height:132px"></div>
+          <div class="qr-cap" style="font-size:18px">Not in yet? Scan.</div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span class="mark"><i></i>PowerTrace</span><span>05</span></div>
+  </section>
+
+  <!-- 6. Live -->
+  <section class="slide" data-s="live">
+    <div class="eyebrow">Live, on Atlas</div>
+    <h2>Watch the building change.</h2>
+    <div class="beats">
+      <div class="beat"><b>Switch on</b><span>Load bars move on every screen within a second.</span><em>change streams</em></div>
+      <div class="beat"><b>Pile on</b><span>DB-L3-01 goes amber, then red.</span><em>$graphLookup + $sum</em></div>
+      <div class="beat"><b>Bad re-wire</b><span>3-phase onto single-phase: rejected on your phone.</span><em>validation</em></div>
+      <div class="beat"><b>Trip</b><span>SMSB-B goes off. Half the room loses power.</span><em>$graphLookup down</em></div>
+      <div class="beat"><b>Trace</b><span>Tap one item: the path back to the main board.</span><em>$graphLookup up</em></div>
+    </div>
+    <p class="lede" style="margin-top:20px">Nothing here is animated by hand. Every change is a write to MongoDB, and every screen is reading it back.</p>
+    <div class="foot"><span class="mark"><i></i>PowerTrace</span><span>06</span></div>
+  </section>
+
+  <!-- 7. Scale -->
+  <section class="slide" data-s="scale">
+    <div class="eyebrow">Same model, same queries, real scale</div>
+    <h2>A 12-storey hospital.</h2>
+    <div class="stats">
+      <div class="stat"><b>4,257</b><span>nodes in Atlas</span></div>
+      <div class="stat"><b>289</b><span>boards</span></div>
+      <div class="stat"><b>3,968</b><span>pieces of equipment</span></div>
+      <div class="stat"><b class="hl">203</b><span>critical loads</span></div>
+    </div>
+    <div class="two">
+      <div><b>Shutdown planning</b>Pick a board to isolate. Get every affected item, with theatre lights and ventilators flagged, and MongoDB's own query time from <span class="mono">explain()</span>.</div>
+      <div><b>Messy schedule import</b>4,269 rows in the format engineers actually send. 24 bad rows rejected by the database with a reason each. 4,245 imported.</div>
+    </div>
+    <div class="foot"><span class="mark"><i></i>PowerTrace</span><span>07</span></div>
+  </section>
+
+  <!-- 8. Why MongoDB -->
+  <section class="slide" data-s="why">
+    <div class="eyebrow">Why MongoDB is the engine</div>
+    <h2>Every feature has a visible job.</h2>
+    <table class="why">
+      <tr><td>$graphLookup</td><td>Trace downstream and upstream, recursively, inside the database</td></tr>
+      <tr><td>Aggregation + $facet</td><td>Live load % per board, the shutdown report, change history</td></tr>
+      <tr><td>Change streams</td><td>Every tap on every phone reaches every screen</td></tr>
+      <tr><td>$jsonSchema validation</td><td>Rejects equipment with no rating, a bad voltage, an unknown type</td></tr>
+      <tr><td>Unique _id + index on parentId</td><td>No duplicate tags; fast traversal at 4,000+ nodes</td></tr>
+    </table>
+    <div class="foot"><span class="mark"><i></i>PowerTrace</span><span>08</span></div>
+  </section>
+
+  <!-- 9. Close -->
+  <section class="slide" data-s="close">
+    <div class="eyebrow">Built by someone who has the problem</div>
+    <h2>The tool Fortune wishes he had at work.</h2>
+    <div class="close-grid">
+      <div>
+        <h3>Real today</h3>
+        <ul>
+          <li>A live MongoDB Atlas database, not a mock-up</li>
+          <li>Every query you saw ran on it, live</li>
+          <li>The columns of a real cable schedule</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Next</h3>
+        <ul>
+          <li>Import a contractor's real cable schedule</li>
+          <li>Live meter readings instead of rated kW</li>
+          <li>An agent that re-routes critical loads after a trip, checked against the graph</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot"><span class="mark"><i></i>PowerTrace</span><span>09</span></div>
+  </section>
+
+</div></div>
+<button class="nav prev" aria-label="Previous slide"></button>
+<button class="nav next" aria-label="Next slide"></button>
+<div class="progress" id="progress"></div>
+<div class="hint">← → to move · F fullscreen</div>
+
+<script src="qrcode.js"></script>
+<script>window.qrcode || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"><\/script>');</script>
+<script>
+(function () {
+  const stage = document.getElementById('stage');
+  const slides = [...document.querySelectorAll('.slide')];
+  const progress = document.getElementById('progress');
+  let i = 0;
+
+  function fit() {
+    const s = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+    stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+  }
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((el, k) => el.classList.toggle('on', k === i));
+    progress.style.width = `${((i + 1) / slides.length) * 100}%`;
+    if (/^[a-z]+$/.test(slides[i].dataset.s)) history.replaceState(null, '', `#${slides[i].dataset.s}`);
+  }
+  const start = slides.findIndex((el) => `#${el.dataset.s}` === location.hash);
+  show(start > 0 ? start : 0);
+  fit();
+  window.addEventListener('resize', fit);
+  document.querySelector('.nav.prev').addEventListener('click', () => show(i - 1));
+  document.querySelector('.nav.next').addEventListener('click', () => show(i + 1));
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key.toLowerCase() === 'f') {
+      const el = document.documentElement;
+      (document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen?.())?.catch?.(() => {});
+    }
+  });
+
+  // QR: when served by the PowerTrace server (at /pitch), phones join at <same origin>/join.
+  const served = /\/pitch\/?(index\.html)?$/.test(location.pathname) && location.protocol.startsWith('http');
+  const joinUrl = served ? `${location.origin}/join` : null;
+  document.querySelectorAll('[data-qr]').forEach((box) => {
+    if (joinUrl && window.qrcode) {
+      const q = qrcode(0, 'M');
+      q.addData(joinUrl);
+      q.make();
+      box.innerHTML = q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+    } else {
+      box.innerHTML = box.offsetWidth < 200 ? '<div class="ph">QR</div>' : '<div class="ph">The join QR appears here when the deck is opened from the PowerTrace server at /pitch</div>';
+    }
+  });
+  document.querySelectorAll('[data-qr-url]').forEach((el) => { el.textContent = joinUrl ? joinUrl.replace(/^https?:\/\//, '') : ''; });
+})();
+</script>
+</body>
+</html>

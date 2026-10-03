@@ -399,9 +399,11 @@ app.use('/api', api);
 const joinDir = fileURLToPath(new URL('../../join', import.meta.url));
 const screenDist = fileURLToPath(new URL('../../screen/dist', import.meta.url));
 app.use('/join', express.static(joinDir));
+const pitchDir = fileURLToPath(new URL('../../pitch', import.meta.url));
+app.use('/pitch', express.static(pitchDir)); // the 3-minute deck; its QR points at this server's /join
 if (fs.existsSync(screenDist)) {
   app.use(express.static(screenDist));
-  app.get(/^\/(?!api|socket\.io|join).*/, (req, res) => res.sendFile(`${screenDist}/index.html`));
+  app.get(/^\/(?!api|socket\.io|join|pitch).*/, (req, res) => res.sendFile(`${screenDist}/index.html`));
 } else {
   app.get('/', (req, res) => res.type('text').send('PowerTrace backend: API at /api, phones at /join. Run the screen with `npm run screen`.'));
 }
