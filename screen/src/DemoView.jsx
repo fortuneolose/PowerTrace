@@ -7,6 +7,7 @@ import { edgeTypes, nodeTypes } from './FlowParts.jsx';
 import { deadSet, depthBelow, feedPath, layout, loadBand } from './layout.js';
 import SidePanel from './SidePanel.jsx';
 import { Caption, narrate } from './Explainer.jsx';
+import CommandBox from './CommandBox.jsx';
 
 const STEP_MS = 130;      // fault ripple delay per level
 const MOVE_MS = 750;      // re-wire glide
@@ -288,7 +289,12 @@ function Demo({ onToast }) {
           <Background gap={22} size={1.4} color="#1d2632" variant="dots" />
           <Controls showInteractive={false} position="top-left" />
         </ReactFlow>
-        {nodes && <Caption line={caption} />}
+        {nodes && (
+          <div className="topline">
+            <Caption line={caption} />
+            <CommandBox bar />
+          </div>
+        )}
         {stats && (
           <dl className="stats" aria-label="Building summary">
             <div><dt>Equipment</dt><dd>{stats.equipment}</dd></div>

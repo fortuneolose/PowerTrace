@@ -315,3 +315,13 @@ strong.red, .hpct.red, .is-tripped { color: var(--fault); }
 .command-result { margin: 10px 0 0; font-size: 13px; padding-left: 10px; border-left: 3px solid var(--line-strong); }
 .command-result.ok { border-left-color: var(--ok); }
 .command-result.no { border-left-color: var(--fault); }
+
+/* Command bar beside the live caption, top of the canvas */
+.topline { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; align-items: flex-start; gap: 12px; width: min(1180px, calc(100% - 120px)); }
+.topline .caption { position: static; transform: none; left: auto; flex: 1 1 0; min-width: 0; max-width: none; animation: caption-fade 380ms ease-out; }
+@keyframes caption-fade { from { opacity: 0; } }
+.command-bar { flex: 0 0 440px; min-width: 0; padding: 12px 14px; background: rgb(16 21 29 / 0.96); border: 1.5px solid var(--current); border-radius: var(--r-lg); box-shadow: 0 0 0 4px rgb(90 169 255 / 0.12), 0 16px 48px rgb(0 0 0 / 0.45); }
+.command-bar h3 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--current); }
+.command-bar input { height: 40px; font-size: 15px; }
+.command-bar .btn.primary { height: 40px; }
+.command-bar .command-examples { margin-top: 6px; }

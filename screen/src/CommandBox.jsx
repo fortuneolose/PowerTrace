@@ -7,7 +7,7 @@ import { socket } from './api.js';
 
 const EXAMPLES = ['Route power away from SMSB-B', 'Restore power to SMSB-B', 'Isolate DB-L3-01'];
 
-export default function CommandBox() {
+export default function CommandBox({ bar = false }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [last, setLast] = useState(null);
@@ -39,8 +39,8 @@ export default function CommandBox() {
   }
 
   return (
-    <section className="card command">
-      <h3>Tell the building</h3>
+    <section className={bar ? 'command command-bar' : 'card command'}>
+      <h3>{bar ? 'Tell the building, in plain English' : 'Tell the building'}</h3>
       <form onSubmit={run}>
         <label className="sr-only" htmlFor="command-text">Command</label>
         <input

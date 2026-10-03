@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import { JOIN_URL } from './config.js';
 import { Explainer } from './Explainer.jsx';
-import CommandBox from './CommandBox.jsx';
 import { api } from './api.js';
 
 const time = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
@@ -153,7 +152,6 @@ export default function SidePanel({ nodes, loads, selected, trace, preview, feed
           <Explainer />
         )}
       </section>
-      <CommandBox />
       <section className="card feed">
         <div className="feed-head"><h3>Activity</h3><span className="muted">{feed.length ? `${feed.length} changes` : ''}</span></div>
         {feed.length === 0 && <p className="muted">Changes from phones and the presenter appear here as they happen.</p>}
