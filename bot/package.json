@@ -4,10 +4,12 @@
   "type": "module",
   "scripts": {
     "start": "node bot.js",
-    "qr": "node qr.js"
+    "qr": "node qr.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "socket.io-client": "^4.8.4"
   }
 }

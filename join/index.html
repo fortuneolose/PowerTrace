@@ -3,35 +3,184 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>PowerTrace: you're on site</title>
+  <meta name="theme-color" content="#101c21" />
+  <title>PowerTrace · On site</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; background: #0f1115; color: #f2f2f2; }
-    .card { background: #1b1f27; border-radius: 12px; padding: 16px; }
-    button { display: block; width: 100%; font-size: 18px; padding: 14px; margin-top: 12px; border-radius: 10px; border: 0; }
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101c21; color: #eef7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); }
+    main { max-width: 480px; margin: auto; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .brand { font-weight: 800; letter-spacing: -.04em; font-size: 24px; }
+    #connection { color: #a8bbb8; font-size: 13px; }
+    .eyebrow { color: #83e4b7; text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700; }
+    h1 { font-size: clamp(32px, 9vw, 46px); margin: 8px 0; overflow-wrap: anywhere; letter-spacing: -.04em; }
+    .card { background: #192b30; border: 1px solid #355055; border-radius: 20px; padding: 24px; }
+    #who { color: #bdcecb; line-height: 1.6; }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+    .facts div { background: #101c21; padding: 14px; border-radius: 12px; }
+    .facts span { display: block; color: #a8bbb8; font-size: 12px; margin-bottom: 6px; }
+    .facts strong { font-size: 19px; }
+    #power { font-weight: 600; margin: 16px 0; }
+    button, select { font: inherit; width: 100%; min-height: 52px; border-radius: 12px; padding: 14px; }
+    button { border: 0; background: #83e4b7; color: #10251c; font-weight: 750; cursor: pointer; margin-top: 12px; }
+    button.secondary { background: #294247; color: #edf6f4; border: 1px solid #456067; }
+    button:disabled, select:disabled { opacity: .45; cursor: wait; }
+    :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+    label { display: block; margin: 24px 0 8px; font-weight: 600; }
+    select { background: #101c21; color: #edf6f4; border: 1px solid #456067; }
+    #message { min-height: 48px; line-height: 1.5; color: #83e4b7; padding: 12px 0; overflow-wrap: anywhere; }
+    #message[data-error="true"] { color: #ffb4ac; }
+    footer { color: #a8bbb8; font-size: 13px; line-height: 1.6; margin-top: 20px; }
+    #outage { position: fixed; inset: 0; z-index: 10; padding: 28px; background: #851e24; text-align: center; align-content: center; animation: pulse 1.6s infinite; }
+    #outage h2 { font-size: clamp(40px, 12vw, 72px); line-height: 1.05; margin: 16px 0; }
+    #outage p { font-size: 18px; }
+    #outage button { max-width: 360px; background: #fff; color: #851e24; }
+    [hidden] { display: none !important; }
+    @keyframes pulse { 50% { background: #b52e36; } }
+    @media (prefers-reduced-motion: reduce) { #outage { animation: none; } }
   </style>
 </head>
 <body>
-  <!-- Phone page. Owner: agent 3 (join). No build step: plain HTML + the Socket.IO client the backend serves. -->
-  <div class="card">
-    <h1>PowerTrace</h1>
-    <p id="who">Claiming a piece of equipment…</p>
-  </div>
-
+  <main>
+    <header><div class="brand">⚡ PowerTrace</div><span id="connection" role="status">Connecting…</span></header>
+    <section class="card" aria-labelledby="tag">
+      <div class="eyebrow">Your equipment on site</div>
+      <h1 id="tag">Joining…</h1>
+      <p id="who">Claiming a piece of equipment. Keep this page open to see live changes.</p>
+      <div class="facts"><div><span>Current load</span><strong id="load">—</strong></div><div><span>Supply</span><strong id="supply">—</strong></div></div>
+      <p id="power" role="status">Waiting for your connection</p>
+      <button id="toggle" disabled>Switch on / off</button>
+      <button id="add" class="secondary" disabled>Add 5 kW</button>
+      <label for="board">Re-wire to a board</label>
+      <select id="board" disabled><option value="">Loading boards…</option></select>
+      <button id="rewire" class="secondary" disabled>Re-wire equipment</button>
+      <div id="message" role="status" aria-live="polite"></div>
+      <button id="retry" class="secondary" hidden>Retry connection</button>
+    </section>
+    <footer>One building. Every connection live.<br>Your equipment stays with you when you reload this page.</footer>
+  </main>
+  <section id="outage" role="alertdialog" aria-modal="true" aria-labelledby="outage-title" aria-describedby="outage-detail" hidden tabindex="-1">
+    <div class="eyebrow">Supply interrupted</div><h2 id="outage-title">YOU'VE LOST POWER</h2>
+    <p id="outage-detail">An upstream board has tripped.</p><button id="dismiss">Back to equipment</button>
+  </section>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // Same origin as the backend (served at /join). See CONTRACT.md for every endpoint and event.
-    const socket = io();
-    const headers = () => ({ 'Content-Type': 'application/json', 'X-Socket-Id': socket.id || '', 'X-Who': 'phone' });
-
-    socket.on('connect', async () => {
-      const preferId = localStorage.getItem('powertrace:nodeId') || undefined;
-      const res = await fetch('/api/claim', { method: 'POST', headers: headers(), body: JSON.stringify({ preferId }) });
-      const data = await res.json();
-      if (!res.ok) { document.getElementById('who').textContent = data.error || 'Could not claim'; return; }
-      const n = data.node;
-      localStorage.setItem('powertrace:nodeId', n._id);
-      document.getElementById('who').textContent = `You are ${n._id}, a ${n.ratedKW} kW ${n.name.toLowerCase()} fed from ${n.parentId}.`;
-    });
+    const el = (id) => document.getElementById(id);
+    const socket = typeof io === 'function' ? io() : null;
+    let node = null, boards = [], energised = null, busy = false, ready = false;
+    let version = 0, syncTimer, returnFocus;
+    const storage = {
+      get() { try { return localStorage.getItem('powertrace:nodeId'); } catch { return null; } },
+      set(id) { try { localStorage.setItem('powertrace:nodeId', id); } catch { /* Private browsers may deny storage. */ } }
+    };
+    function message(text, error = false) { el('message').textContent = text; el('message').dataset.error = String(error); }
+    async function request(path, body) {
+      const response = await fetch(path, {
+        method: body === undefined ? 'GET' : 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Socket-Id': socket?.id || '', 'X-Who': node ? `phone:${node._id}` : 'phone' },
+        body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(10000)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
+      return data;
+    }
+    function render() {
+      const disabled = !ready || !socket?.connected || busy || !node;
+      for (const id of ['toggle', 'add', 'board', 'rewire']) el(id).disabled = disabled || (['board', 'rewire'].includes(id) && !boards.length);
+      if (!node) return;
+      el('tag').textContent = node._id;
+      el('who').textContent = `You are ${node._id}, a ${node.ratedKW} kW ${node.name.toLowerCase()} fed from ${node.parentId}.`;
+      el('load').textContent = `${node.loadKW} kW`;
+      el('supply').textContent = `${node.voltage} V · ${node.phases} phase`;
+      el('toggle').textContent = node.on ? 'Switch off' : 'Switch on';
+      el('power').textContent = energised === false ? '● No power · upstream supply interrupted' : energised === null ? 'Checking supply…' : node.on ? '● Powered and switched on' : '○ Supply available · switched off';
+    }
+    function closeOutage() {
+      el('outage').hidden = true;
+      document.querySelector('main').inert = false;
+      if (returnFocus?.isConnected && !returnFocus.disabled) returnFocus.focus();
+      else el('tag').focus();
+    }
+    function setPower(next) {
+      const previous = energised;
+      energised = next;
+      if (!next && previous !== false) {
+        el('outage-detail').textContent = `${node._id} has no upstream supply. We'll let you know when power returns.`;
+        returnFocus = document.activeElement;
+        document.querySelector('main').inert = true;
+        el('outage').hidden = false;
+        el('dismiss').focus();
+        try { navigator.vibrate?.([200, 100, 200]); } catch { /* Vibration is optional. */ }
+      } else if (next && previous === false) { closeOutage(); message('Power restored'); }
+      render();
+    }
+    function renderBoards() {
+      const selected = el('board').value || node?.parentId;
+      el('board').replaceChildren(...boards.map((b) => {
+        const option = document.createElement('option');
+        option.value = b._id;
+        option.textContent = `${b._id} · ${b.phases} phase · ${b.loadPct}%${b.tripped ? ' · TRIPPED' : ''}`;
+        return option;
+      }));
+      if (boards.some((b) => b._id === selected)) el('board').value = selected;
+      render();
+    }
+    async function synchronise(claim = false) {
+      const token = ++version;
+      ready = false; render();
+      try {
+        const result = claim || !node
+          ? await request('/api/claim', { preferId: node?._id || storage.get() || undefined })
+          : await request(`/api/nodes/${encodeURIComponent(node._id)}`);
+        const list = await request('/api/boards');
+        if (token !== version || !socket?.connected) return;
+        node = result.node; boards = list.boards; storage.set(node._id);
+        ready = true; el('retry').hidden = true;
+        renderBoards(); setPower(result.energised);
+      } catch (error) {
+        if (token !== version) return;
+        message(error.message, true); el('retry').hidden = false;
+      }
+      render();
+    }
+    function scheduleSync() { clearTimeout(syncTimer); syncTimer = setTimeout(() => synchronise(), 80); }
+    async function act(action, body) {
+      if (busy || !ready || !socket?.connected) return;
+      busy = true; message(''); render();
+      try {
+        const result = await request(`/api/nodes/${encodeURIComponent(node._id)}/${action}`, body);
+        node = result.node; render();
+        message(action === 'rewire' ? `Re-wired to ${node.parentId}` : action === 'load' ? `Load is now ${node.loadKW} kW` : `Switched ${node.on ? 'on' : 'off'}`);
+        await synchronise();
+      } catch (error) { message(error.message, true); }
+      finally { busy = false; render(); }
+    }
+    el('toggle').onclick = () => act('toggle', { on: !node.on });
+    el('add').onclick = () => act('load', { deltaKW: 5 });
+    el('rewire').onclick = () => act('rewire', { parentId: el('board').value });
+    el('dismiss').onclick = closeOutage;
+    el('retry').onclick = () => { if (socket?.connected) synchronise(!node); else socket?.connect(); };
+    if (socket) {
+      socket.on('connect', () => { el('connection').textContent = '● Live'; synchronise(true); });
+      socket.on('disconnect', () => { version++; ready = false; el('connection').textContent = 'Reconnecting…'; render(); });
+      socket.on('connect_error', () => { el('connection').textContent = 'Connection unavailable'; message('Could not connect. Check your connection and retry.', true); el('retry').hidden = false; render(); });
+      socket.on('node:changed', ({ node: changed }) => {
+        if (changed._id === node?._id) { node = changed; render(); scheduleSync(); }
+        else if (changed.type === 'board') scheduleSync();
+      });
+      socket.on('loads', (loads) => { boards = boards.map((b) => ({ ...b, loadPct: loads[b._id] ?? b.loadPct })); renderBoards(); });
+      socket.on('rejected', ({ reason, nodeId }) => { if (!nodeId || nodeId === node?._id) message(reason, true); });
+      socket.on('trip', ({ tripped, affected }) => {
+        if (!node || !affected.includes(node._id)) return;
+        if (tripped) setPower(false);
+        scheduleSync(); // Verify all ancestors before announcing restoration.
+      });
+      socket.on('tree:reload', ({ site }) => { if (site === 'demo') synchronise(true); });
+    } else {
+      el('connection').textContent = 'Connection unavailable';
+      message('The live connection could not load. Reload this page when the server is available.', true);
+    }
   </script>
 </body>
 </html>
