@@ -13,7 +13,7 @@
     "schedule": "npm --prefix data run schedule",
     "bot": "npm --prefix bot start",
     "qr": "npm --prefix bot run qr --",
-    "test": "npm --prefix data test && npm --prefix mock test",
+    "test": "npm --prefix data test && npm --prefix mock test && npm --prefix backend test && npm --prefix bot test",
     "build": "npm --prefix backend ci && npm --prefix mock ci && npm --prefix screen ci --include=dev && npm --prefix screen run build",
     "start": "node start.js"
   },
