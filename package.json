@@ -12,7 +12,8 @@
     "seed:hospital": "npm --prefix data run seed:hospital",
     "schedule": "npm --prefix data run schedule",
     "bot": "npm --prefix bot start",
-    "qr": "npm --prefix bot run qr --"
+    "qr": "npm --prefix bot run qr --",
+    "test": "npm --prefix data test && npm --prefix mock test"
   },
   "engines": {
     "node": ">=20"

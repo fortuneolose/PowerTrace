@@ -5,11 +5,15 @@
   "description": "In-memory implementation of CONTRACT.md (REST + Socket.IO) for frontend development",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node test/run.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.4"
   }
 }

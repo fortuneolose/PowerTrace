@@ -5,7 +5,8 @@
   "scripts": {
     "seed:demo": "node seed-demo.js",
     "seed:hospital": "node seed-hospital.js",
-    "schedule": "node make-schedule.js"
+    "schedule": "node make-schedule.js",
+    "test": "node --test"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

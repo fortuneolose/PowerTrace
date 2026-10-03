@@ -340,7 +340,13 @@ api.post('/import', route(async (req, res) => {
   const t0 = performance.now();
   const replace = req.query.replace === 'true';
   const existingIds = replace ? new Set() : new Set(site.nodes.map((n) => n._id));
-  const { total, valid, rejected } = await parseSchedule(req.body, { existingIds });
+  let parsed;
+  try {
+    parsed = await parseSchedule(req.body, { existingIds });
+  } catch (err) {
+    throw badRequest(err.message); // e.g. a CSV with missing columns: reject the file, don't crash
+  }
+  const { total, valid, rejected } = parsed;
   if (replace) site.nodes = [];
   for (const node of valid) site.nodes.push(node);
   record(req, name, { action: 'import', nodeId: null, from: null, to: `${valid.length} rows`, level: null });
