@@ -14,7 +14,7 @@ async function request(method, path, body) {
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error || res.statusText), { code: data.code, status: res.status });
+  if (!res.ok) throw Object.assign(new Error(data.error || res.statusText || 'Request failed'), { code: data.code, status: res.status });
   return data;
 }
 
