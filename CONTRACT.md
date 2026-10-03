@@ -150,7 +150,7 @@ Errors always look like:
 | 404 | `NOT_FOUND` | Unknown node or board id |
 | 409 | `PHASE_MISMATCH` | 3-phase equipment or board onto a single-phase board |
 | 409 | `CIRCULAR_FEED` | New parent is the node itself or downstream of it |
-| 409 | `OVERLOAD` | Re-wire would push the target board, or any board upstream of it, over 100% |
+| 409 | `OVERLOAD` | Re-wire would push the target board, or any board upstream of it, over 100%. A board only counts if the move raises its load (so a main board already in the red from "+5 kW" taps doesn't block unrelated moves) |
 | 409 | `NOT_A_BOARD` | Re-wire target is a piece of equipment |
 | 422 | `SCHEMA_VALIDATION` | MongoDB `$jsonSchema` rejected the write (error code 121) |
 
@@ -257,6 +257,10 @@ Response `409`:
 
 ```json
 { "error": "Rejected: circular feed (DB-L3-01 is downstream of SMSB-B)", "code": "CIRCULAR_FEED" }
+```
+
+```json
+{ "error": "Rejected: circular feed (SMSB-B cannot feed itself)", "code": "CIRCULAR_FEED" }
 ```
 
 ```json
@@ -379,7 +383,9 @@ Change history from an aggregation over `events`. `level` is optional.
 
 ### `POST /api/reset?site=demo`
 
-Re-seed the demo building from `data/demo-building.js` (clears claims, trips and events). Emits `tree:reload`.
+Re-seed the demo building from `data/demo-building.js` (clears claims, trips and events). Demo site only
+(`?site=hospital` is a 400). Emits `tree:reload`, then `loads`, and `trip { tripped: false, affected }` for every
+board that was tripped before the reset (so phones that lost power show "Power restored").
 Used between rehearsals and right before going on stage.
 
 ```json

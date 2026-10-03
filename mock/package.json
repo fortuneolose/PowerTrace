@@ -1,0 +1,15 @@
+{
+  "name": "powertrace-mock",
+  "private": true,
+  "type": "module",
+  "description": "In-memory implementation of CONTRACT.md (REST + Socket.IO) for frontend development",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}
