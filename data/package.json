@@ -1,0 +1,14 @@
+{
+  "name": "powertrace-data",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed:demo": "node seed-demo.js",
+    "seed:hospital": "node seed-hospital.js",
+    "schedule": "node make-schedule.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mongodb": "^6.12.0"
+  }
+}

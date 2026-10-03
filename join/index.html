@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>PowerTrace: you're on site</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; background: #0f1115; color: #f2f2f2; }
+    .card { background: #1b1f27; border-radius: 12px; padding: 16px; }
+    button { display: block; width: 100%; font-size: 18px; padding: 14px; margin-top: 12px; border-radius: 10px; border: 0; }
+  </style>
+</head>
+<body>
+  <!-- Phone page. Owner: agent 3 (join). No build step: plain HTML + the Socket.IO client the backend serves. -->
+  <div class="card">
+    <h1>PowerTrace</h1>
+    <p id="who">Claiming a piece of equipment…</p>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Same origin as the backend (served at /join). See CONTRACT.md for every endpoint and event.
+    const socket = io();
+    const headers = () => ({ 'Content-Type': 'application/json', 'X-Socket-Id': socket.id || '', 'X-Who': 'phone' });
+
+    socket.on('connect', async () => {
+      const preferId = localStorage.getItem('powertrace:nodeId') || undefined;
+      const res = await fetch('/api/claim', { method: 'POST', headers: headers(), body: JSON.stringify({ preferId }) });
+      const data = await res.json();
+      if (!res.ok) { document.getElementById('who').textContent = data.error || 'Could not claim'; return; }
+      const n = data.node;
+      localStorage.setItem('powertrace:nodeId', n._id);
+      document.getElementById('who').textContent = `You are ${n._id}, a ${n.ratedKW} kW ${n.name.toLowerCase()} fed from ${n.parentId}.`;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Secrets: never commit real credentials (the repo is public)
+.env
+.env.*
+!.env.example
+screen/.env.local
+
+# Team-only notes (demo script, pitch strategy). The repo is public.
+private/
+
+node_modules/
+dist/
+.DS_Store
+*.log
+.vscode/
+.idea/

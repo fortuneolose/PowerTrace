@@ -1,0 +1,20 @@
+{
+  "name": "powertrace",
+  "private": true,
+  "description": "PowerTrace: a live dependency graph of a building's electrical system on MongoDB Atlas",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix screen install && npm --prefix bot install && npm --prefix data install && npm --prefix mock install",
+    "backend": "npm --prefix backend run dev",
+    "mock": "npm --prefix mock start",
+    "screen": "npm --prefix screen run dev",
+    "build:screen": "npm --prefix screen run build",
+    "seed:demo": "npm --prefix data run seed:demo",
+    "seed:hospital": "npm --prefix data run seed:hospital",
+    "schedule": "npm --prefix data run schedule",
+    "bot": "npm --prefix bot start",
+    "qr": "npm --prefix bot run qr --"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

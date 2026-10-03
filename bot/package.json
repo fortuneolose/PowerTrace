@@ -1,0 +1,13 @@
+{
+  "name": "powertrace-bot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node bot.js",
+    "qr": "node qr.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
