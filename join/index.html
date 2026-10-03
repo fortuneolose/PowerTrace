@@ -131,6 +131,8 @@
       <p class="hint">Turning on adds your load to your board.</p>
       <button id="add" disabled>Add 5 kW</button>
       <p class="hint">Push your board past 100% and it turns red for everyone.</p>
+      <button id="restore" disabled>Reset to normal</button>
+      <p class="hint">Puts your equipment back on its original board at its rated load.</p>
       <div id="message" role="status" aria-live="polite"></div>
       <button id="retry" hidden>Retry connection</button>
     </section>
@@ -184,7 +186,7 @@
     }
     function render() {
       const disabled = !ready || !socket?.connected || busy || !node;
-      for (const id of ['toggle', 'add', 'board', 'rewire']) el(id).disabled = disabled || (['board', 'rewire'].includes(id) && !boards.length);
+      for (const id of ['toggle', 'add', 'restore', 'board', 'rewire']) el(id).disabled = disabled || (['board', 'rewire'].includes(id) && !boards.length);
       if (!node) return;
       el('tag').textContent = node._id;
       el('who').textContent = `You are ${node._id}, a ${node.ratedKW} kW ${node.name.toLowerCase()} fed from ${node.parentId}.`;
@@ -259,13 +261,14 @@
       try {
         const result = await request(`/api/nodes/${encodeURIComponent(node._id)}/${action}`, body);
         node = result.node; render();
-        message(action === 'rewire' ? `Re-wired to ${node.parentId}` : action === 'load' ? `Load is now ${node.loadKW} kW` : `Switched ${node.on ? 'on' : 'off'}`);
+        message(action === 'rewire' ? `Re-wired to ${node.parentId}` : action === 'load' ? `Load is now ${node.loadKW} kW` : action === 'restore' ? `Back to normal: ${node.loadKW} kW on ${node.parentId}` : `Switched ${node.on ? 'on' : 'off'}`);
         await synchronise();
       } catch (error) { message(error.message, true); }
       finally { busy = false; render(); }
     }
     el('toggle').onclick = () => act('toggle', { on: !node.on });
     el('add').onclick = () => act('load', { deltaKW: 5 });
+    el('restore').onclick = () => act('restore', {});
     el('rewire').onclick = () => act('rewire', { parentId: el('board').value });
     el('dismiss').onclick = closeOutage;
     el('retry').onclick = () => { if (socket?.connected) synchronise(!node); else socket?.connect(); };

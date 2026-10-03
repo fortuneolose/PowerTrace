@@ -235,6 +235,20 @@ api.post('/nodes/:id/load', route(async (req, res) => {
   res.json({ node: updated });
 }));
 
+// Put one piece of equipment back as it was at the start of the demo (board, load, on/off),
+// so a phone can undo its own overload without resetting the whole building.
+api.post('/nodes/:id/restore', route(async (req, res) => {
+  const site = siteOf(req);
+  if (site.name !== 'demo') throw badRequest('Restore only applies to the demo site');
+  const node = await getNode(site.nodes, req.params.id);
+  const base = getDemoNodes().find((n) => n._id === node._id);
+  if (!base || base.type !== 'equipment') throw badRequest(`${node._id} has no starting state to restore`);
+  const updated = await update(site.nodes, node._id, { $set: { parentId: base.parentId, on: base.on, loadKW: base.loadKW } });
+  rt.nodesChanged(site.name, [updated]);
+  await record(req, site, { action: 'restore', nodeId: node._id, from: `${node.loadKW} kW on ${node.parentId}`, to: `${base.loadKW} kW on ${base.parentId}`, level: node.level });
+  res.json({ node: updated });
+}));
+
 api.post('/boards/:id/trip', route(async (req, res) => {
   const site = siteOf(req);
   const board = await getBoard(site.nodes, req.params.id);

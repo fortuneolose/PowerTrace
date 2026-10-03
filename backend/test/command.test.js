@@ -33,3 +33,9 @@ test('each action maps to its existing route', () => {
   assert.equal(describe({ action: 'trip', target: 'DB-L3-01' }, 200, { affected: [1, 2, 3] }), 'Routed power away from DB-L3-01: 3 items downstream are now without power.');
   assert.equal(describe({ action: 'rewire', target: 'AHU-07', to: 'DB-L2-02' }, 409, { error: 'Rejected: DB-L2-02 is single-phase' }), 'Rejected: DB-L2-02 is single-phase');
 });
+
+test('reset on equipment restores it to normal', () => {
+  assert.deepEqual(parseCommand('reset LTG-L1-02', byId), { action: 'restore', target: 'LTG-L1-02' });
+  assert.deepEqual(parseCommand('reset ltg l1-02', byId), { action: 'restore', target: 'LTG-L1-02' });
+  assert.deepEqual(toRequest({ action: 'restore', target: 'LTG-L1-02' }), { path: '/api/nodes/LTG-L1-02/restore', body: {} });
+});

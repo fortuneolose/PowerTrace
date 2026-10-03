@@ -24,6 +24,7 @@ function describe(e) {
     case 'reset': return `${e.nodeId} reset`;
     case 'claim': return `${e.nodeId} joined from a phone`;
     case 'import': return `Imported ${e.to}`;
+    case 'restore': return `${e.nodeId} reset to normal`;
     default: return `${e.nodeId ?? ''} ${e.action}`;
   }
 }
