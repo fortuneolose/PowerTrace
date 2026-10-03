@@ -5,6 +5,8 @@ Ask "what does this panel feed?" or "what loses power if it trips?" and get the 
 
 Built at the MongoDB × Give(a)Go Student Builder Day, 3 October 2026.
 
+**Live app:** [powertrace-embs.onrender.com](https://powertrace-embs.onrender.com/) · [Join from a phone](https://powertrace-embs.onrender.com/join)
+
 ---
 
 ## The problem
