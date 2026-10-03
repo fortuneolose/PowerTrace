@@ -24,7 +24,7 @@ export default function CommandBox() {
         body: JSON.stringify({ text: t }),
       });
       const data = await res.json().catch(() => ({}));
-      const by = data.by === 'claude' ? 'Claude' : data.by ? 'keyword parser' : null;
+      const by = data.by === 'claude' ? 'Claude' : data.by === 'demo default' ? 'demo default' : data.by ? 'keyword parser' : null;
       setLast({
         ok: res.ok && data.ok !== false,
         message: data.message || (res.status === 404 ? 'Commands need the real backend (not the mock).' : data.error || 'That did not work.'),

@@ -13,7 +13,7 @@ import { connect, getDb, SITES } from './db.js';
 import { ensureSchema } from './schema.js';
 import { DOWN, downstreamOf, upstreamOf, isEnergised, boardLoads, contributionKW, explainMillis } from './graph.js';
 import { createRealtime } from './realtime.js';
-import { parseCommand, parseWithClaude, toRequest, describe, EXAMPLES } from './command.js';
+import { parseCommand, parseWithClaude, fallbackCommand, toRequest, describe, EXAMPLES } from './command.js';
 import { CsvError, prepare, importRows } from './importer.js';
 import { getDemoNodes } from '../../data/demo-building.js';
 
@@ -418,7 +418,7 @@ api.post('/command', route(async (req, res) => {
   let by = 'claude';
   let cmd = await parseWithClaude(text, byId);
   if (!cmd) { by = 'rules'; cmd = parseCommand(text, byId); }
-  if (cmd.error) return res.status(422).json({ text, by, understood: null, ok: false, message: cmd.error });
+  if (cmd.error) { by = 'demo default'; cmd = fallbackCommand(text); } // no recognisable board: act on the demo's fault sub-main
   const call = toRequest(cmd);
   const headers = { 'Content-Type': 'application/json', 'X-Who': 'operator' };
   if (req.get('X-Socket-Id')) headers['X-Socket-Id'] = req.get('X-Socket-Id');

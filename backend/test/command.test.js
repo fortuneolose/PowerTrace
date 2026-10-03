@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseCommand, toRequest, describe } from '../src/command.js';
+import { parseCommand, fallbackCommand, toRequest, describe } from '../src/command.js';
 import { demoNodes } from '../../data/demo-building.js';
 
 const byId = new Map(demoNodes.map((n) => [n._id, n]));
@@ -38,4 +38,9 @@ test('reset on equipment restores it to normal', () => {
   assert.deepEqual(parseCommand('reset LTG-L1-02', byId), { action: 'restore', target: 'LTG-L1-02' });
   assert.deepEqual(parseCommand('reset ltg l1-02', byId), { action: 'restore', target: 'LTG-L1-02' });
   assert.deepEqual(toRequest({ action: 'restore', target: 'LTG-L1-02' }), { path: '/api/nodes/LTG-L1-02/restore', body: {} });
+});
+
+test('commands with no recognisable board fall back to the fault sub-main', () => {
+  assert.deepEqual(fallbackCommand('route power away from the faulty board'), { action: 'trip', target: 'SMSB-B' });
+  assert.deepEqual(fallbackCommand('restore power'), { action: 'reset', target: 'SMSB-B' });
 });

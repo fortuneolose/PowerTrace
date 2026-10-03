@@ -57,7 +57,7 @@
       const r = await fetch('/api/command', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Who': 'operator' }, body: JSON.stringify({ text }) });
       const j = await r.json();
       const u = j.understood;
-      const what = u ? `${j.by === 'claude' ? 'Claude' : 'keyword parser'} → ${u.action} ${u.target}${u.to ? ' → ' + u.to : ''}${u.on !== undefined ? (u.on ? ' on' : ' off') : ''}` : (j.by ? `${j.by === 'claude' ? 'Claude' : 'keyword parser'}: not understood` : '');
+      const what = u ? `${j.by === 'claude' ? 'Claude' : j.by === 'demo default' ? 'demo default' : 'keyword parser'} → ${u.action} ${u.target}${u.to ? ' → ' + u.to : ''}${u.on !== undefined ? (u.on ? ' on' : ' off') : ''}` : (j.by ? `${j.by === 'claude' ? 'Claude' : 'keyword parser'}: not understood` : '');
       add(j.ok ? 'ok' : 'no', text, j.message || j.error || 'Something went wrong.', what);
     } catch (e) {
       add('no', text, 'Could not reach the PowerTrace server.', '');

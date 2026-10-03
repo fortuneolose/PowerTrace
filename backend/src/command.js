@@ -18,6 +18,12 @@ export const EXAMPLES = [
   'Reset LTG-L1-02',
 ];
 
+// Demo fallback: a command that names no board we recognise acts on this sub-main (the demo's fault board).
+export const FAULT_BOARD = process.env.DEMO_FAULT_BOARD || 'SMSB-B';
+export function fallbackCommand(text) {
+  return RESTORE.test(String(text)) ? { action: 'reset', target: FAULT_BOARD } : { action: 'trip', target: FAULT_BOARD };
+}
+
 // -> { action: 'trip'|'reset'|'rewire'|'toggle', target, to?, on? } or { error }
 export function parseCommand(text, byId = new Map()) {
   text = String(text).replace(/\b([A-Za-z]{2,5})[\s_]+(L\d+-\d{1,3})\b/gi, '$1-$2'); // "ltg l1-02" -> "ltg-l1-02"
