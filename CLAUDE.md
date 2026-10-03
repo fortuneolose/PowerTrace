@@ -31,7 +31,9 @@ folder, tell your human; they ask the owner.
 - Pull `main` into your branch after each merge (`git pull origin main`).
 - Never force-push `main`. Never rewrite someone else's branch.
 
-## Secrets: the repo is PUBLIC
+## Secrets: treat the repo as PUBLIC
+
+The repo is private during the event but is made public for judging, and git history goes with it.
 
 - `MONGODB_URI` lives only in `.env` at the repo root (git-ignored). Copy `.env.example`.
 - Never commit `.env`, connection strings, API keys, or anything in `private/`.

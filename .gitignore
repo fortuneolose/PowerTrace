@@ -1,10 +1,10 @@
-# Secrets: never commit real credentials (the repo is public)
+# Secrets: never commit real credentials (the repo goes public for judging)
 .env
 .env.*
 !.env.example
 screen/.env.local
 
-# Team-only notes (demo script, pitch strategy). The repo is public.
+# Team-only notes (demo script, pitch strategy). The repo goes public for judging, history included.
 private/
 
 node_modules/
