@@ -3,66 +3,163 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#101c21" />
-  <title>PowerTrace · On site</title>
+  <meta name="theme-color" content="#090c11" />
+  <title>PowerTrace: you're on site</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101c21; color: #eef7f5; }
+    /* Same tokens as the main screen (screen/src/styles.css) so the phone and the big screen match. */
+    :root {
+      color-scheme: dark;
+      --bg: #090c11; --surface: #10151d; --raised: #151b25; --line: #1f2733; --line-strong: #2c3644;
+      --text: #e8edf3; --muted: #8994a3; --faint: #5a6574;
+      --current: #5aa9ff; --ok: #3ddc97; --warn: #f5a524; --fault: #ff4d6a;
+      --sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+      --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); }
-    main { max-width: 480px; margin: auto; }
-    header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 32px; }
-    .brand { font-weight: 800; letter-spacing: -.04em; font-size: 24px; }
-    #connection { color: #a8bbb8; font-size: 13px; }
-    .eyebrow { color: #83e4b7; text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700; }
-    h1 { font-size: clamp(32px, 9vw, 46px); margin: 8px 0; overflow-wrap: anywhere; letter-spacing: -.04em; }
-    .card { background: #192b30; border: 1px solid #355055; border-radius: 20px; padding: 24px; }
-    #who { color: #bdcecb; line-height: 1.6; }
-    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
-    .facts div { background: #101c21; padding: 14px; border-radius: 12px; }
-    .facts span { display: block; color: #a8bbb8; font-size: 12px; margin-bottom: 6px; }
-    .facts strong { font-size: 19px; }
-    #power { font-weight: 600; margin: 16px 0; }
-    button, select { font: inherit; width: 100%; min-height: 52px; border-radius: 12px; padding: 14px; }
-    button { border: 0; background: #83e4b7; color: #10251c; font-weight: 750; cursor: pointer; margin-top: 12px; }
-    button.secondary { background: #294247; color: #edf6f4; border: 1px solid #456067; }
-    button:disabled, select:disabled { opacity: .45; cursor: wait; }
-    :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
-    label { display: block; margin: 24px 0 8px; font-weight: 600; }
-    select { background: #101c21; color: #edf6f4; border: 1px solid #456067; }
-    #message { min-height: 48px; line-height: 1.5; color: #83e4b7; padding: 12px 0; overflow-wrap: anywhere; }
-    #message[data-error="true"] { color: #ffb4ac; }
-    footer { color: #a8bbb8; font-size: 13px; line-height: 1.6; margin-top: 20px; }
-    #outage { position: fixed; inset: 0; z-index: 10; padding: 28px; background: #851e24; text-align: center; align-content: center; animation: pulse 1.6s infinite; }
-    #outage h2 { font-size: clamp(40px, 12vw, 72px); line-height: 1.05; margin: 16px 0; }
-    #outage p { font-size: 18px; }
-    #outage button { max-width: 360px; background: #fff; color: #851e24; }
+    html { background: var(--bg); }
+    body { margin: 0; padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); font-family: var(--sans); color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; }
+    main { max-width: 460px; margin: auto; }
+    :focus-visible { outline: 2px solid var(--current); outline-offset: 2px; }
+
+    header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 4px 0 18px; }
+    .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
+    .mark { width: 22px; height: 22px; fill: var(--current); stroke: var(--current); stroke-width: 1.6; stroke-linecap: round; }
+    .mark rect { stroke: none; }
+    #connection { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+    .card + .card, .card + details { margin-top: 12px; }
+    .hero { background: radial-gradient(120% 120% at 0% 0%, rgb(90 169 255 / 0.12), transparent 55%), var(--surface); }
+    .eyebrow { font-size: 13px; font-weight: 500; color: var(--muted); }
+    h1 { margin: 4px 0 6px; font-family: var(--mono); font-size: clamp(34px, 11vw, 46px); font-weight: 600; letter-spacing: -0.03em; overflow-wrap: anywhere; }
+    #who { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+    /* Power status, with a live wire that carries current while you're powered and switched on */
+    .status { margin: 18px 0 0; padding: 12px 14px; background: var(--raised); border: 1px solid var(--line); border-radius: 12px; }
+    #power { margin: 0; font-size: 14.5px; font-weight: 500; }
+    .wire { position: relative; height: 3px; margin-top: 10px; border-radius: 2px; background: var(--line-strong); overflow: hidden; }
+    .wire::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, var(--current) 0 4px, transparent 4px 16px); background-size: 32px 3px; box-shadow: 0 0 8px var(--current); opacity: 0; transition: opacity 200ms; animation: flow 0.9s linear infinite; }
+    @keyframes flow { to { background-position: 32px 0; } }
+    .status[data-state="on"] #power { color: var(--ok); }
+    .status[data-state="on"] .wire::after { opacity: 1; }
+    .status[data-state="dead"] { border-color: rgb(255 77 106 / 0.5); background: rgb(255 77 106 / 0.08); }
+    .status[data-state="dead"] #power { color: var(--fault); }
+    .status[data-state="dead"] .wire { background: repeating-linear-gradient(90deg, var(--fault) 0 6px, transparent 6px 11px); }
+
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 0; }
+    .facts div { padding: 12px 14px; background: var(--raised); border: 1px solid var(--line); border-radius: 12px; }
+    .facts span { display: block; margin-bottom: 4px; font-size: 12.5px; color: var(--muted); }
+    .facts strong { font-family: var(--mono); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+    .boardload { margin-top: 10px; padding: 12px 14px; background: var(--raised); border: 1px solid var(--line); border-radius: 12px; }
+    .boardload-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--muted); }
+    .boardload-row strong { font-family: var(--mono); font-size: 15px; color: var(--text); }
+    .bar { height: 6px; margin-top: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+    .bar span { display: block; height: 100%; width: 0; border-radius: 999px; background: var(--ok); transition: width 500ms cubic-bezier(.2,.8,.2,1), background-color 300ms; }
+    .bar span.amber { background: var(--warn); box-shadow: 0 0 10px rgb(245 165 36 / 0.6); }
+    .bar span.red { background: var(--fault); box-shadow: 0 0 12px rgb(255 77 106 / 0.7); }
+    .boardload strong.red { color: var(--fault); } .boardload strong.amber { color: var(--warn); }
+
+    h2.section { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+    .section-sub { margin: 0 0 12px; font-size: 13.5px; color: var(--muted); }
+    button, select { font: inherit; width: 100%; min-height: 50px; border-radius: 12px; padding: 0 16px; }
+    button { margin-top: 10px; border: 1px solid var(--line-strong); background: var(--raised); color: var(--text); font-weight: 600; font-size: 15.5px; cursor: pointer; transition: transform 80ms, background 150ms; }
+    button:active { transform: scale(0.99); }
+    button.primary { background: var(--text); color: #0b0f15; border-color: var(--text); }
+    button:disabled, select:disabled { opacity: .4; cursor: wait; }
+    .hint { margin: 6px 2px 0; font-size: 13px; line-height: 1.45; color: var(--faint); }
+    label { display: block; margin: 0 0 8px; font-size: 13px; font-weight: 500; color: var(--muted); }
+    select { appearance: none; background: var(--raised) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238994a3' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 16px center; color: var(--text); border: 1px solid var(--line-strong); font-family: var(--mono); font-size: 14.5px; }
+    #message { min-height: 22px; margin: 12px 2px 0; font-size: 14px; line-height: 1.5; color: var(--ok); overflow-wrap: anywhere; }
+    #message:empty { margin: 0; min-height: 0; }
+    #message[data-error="true"] { color: var(--fault); }
+
+    details.howto { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; margin-top: 12px; }
+    .howto summary { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 15px; cursor: pointer; list-style: none; }
+    .howto summary::-webkit-details-marker { display: none; }
+    .howto summary::after { content: "+"; font-family: var(--mono); color: var(--current); font-size: 18px; }
+    .howto[open] summary::after { content: "−"; }
+    .howto ol { list-style: none; counter-reset: step; margin: 14px 0 2px; padding: 0; display: grid; gap: 12px; }
+    .howto li { counter-increment: step; position: relative; padding-left: 32px; font-size: 14px; line-height: 1.45; color: var(--muted); }
+    .howto li strong { display: block; color: var(--text); font-weight: 600; }
+    .howto li::before { content: counter(step); position: absolute; left: 0; top: 1px; width: 22px; height: 22px; display: grid; place-items: center; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--current); background: rgb(90 169 255 / 0.12); border: 1px solid rgb(90 169 255 / 0.35); border-radius: 6px; }
+    footer { margin-top: 18px; text-align: center; font-size: 12.5px; line-height: 1.6; color: var(--faint); }
+
+    #outage { position: fixed; inset: 0; z-index: 10; padding: 28px; display: grid; align-content: center; justify-items: center; text-align: center; background: radial-gradient(90% 70% at 50% 40%, rgb(255 77 106 / 0.35), transparent 70%), #12060a; animation: alarm 1.4s ease-in-out infinite; }
+    #outage .eyebrow { color: #ffb3c0; }
+    #outage h2 { margin: 12px 0; font-size: clamp(40px, 13vw, 64px); font-weight: 700; line-height: 1.02; letter-spacing: -0.03em; color: #fff; }
+    #outage p { max-width: 340px; font-size: 17px; line-height: 1.5; color: #ffd6dd; }
+    #outage button { max-width: 320px; margin-top: 18px; background: #fff; color: #12060a; border-color: #fff; }
+    .bolt { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: var(--fault); box-shadow: 0 0 0 10px rgb(255 77 106 / 0.2), 0 0 60px rgb(255 77 106 / 0.8); }
+    .bolt svg { width: 30px; height: 30px; fill: #fff; }
+    @keyframes alarm { 50% { background-color: #2a0911; } }
     [hidden] { display: none !important; }
-    @keyframes pulse { 50% { background: #b52e36; } }
-    @media (prefers-reduced-motion: reduce) { #outage { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   </style>
 </head>
 <body>
   <main>
-    <header><div class="brand">⚡ PowerTrace</div><span id="connection" role="status">Connecting…</span></header>
-    <section class="card" aria-labelledby="tag">
-      <div class="eyebrow">Your equipment on site</div>
-      <h1 id="tag">Joining…</h1>
+    <header>
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="1.2" /><rect x="2" y="17" width="6" height="5" rx="1.2" /><rect x="16" y="17" width="6" height="5" rx="1.2" /><path d="M12 7v5M5 17v-5h14v5" fill="none" /></svg>
+        PowerTrace
+      </div>
+      <span id="connection" role="status">Connecting…</span>
+    </header>
+
+    <section class="card hero" aria-labelledby="tag">
+      <div class="eyebrow">You are</div>
+      <h1 id="tag" tabindex="-1">Joining…</h1>
       <p id="who">Claiming a piece of equipment. Keep this page open to see live changes.</p>
-      <div class="facts"><div><span>Current load</span><strong id="load">—</strong></div><div><span>Supply</span><strong id="supply">—</strong></div></div>
-      <p id="power" role="status">Waiting for your connection</p>
-      <button id="toggle" disabled>Switch on / off</button>
-      <button id="add" class="secondary" disabled>Add 5 kW</button>
-      <label for="board">Re-wire to a board</label>
-      <select id="board" disabled><option value="">Loading boards…</option></select>
-      <button id="rewire" class="secondary" disabled>Re-wire equipment</button>
-      <div id="message" role="status" aria-live="polite"></div>
-      <button id="retry" class="secondary" hidden>Retry connection</button>
+      <div class="status" id="status" data-state="checking">
+        <p id="power" role="status">Waiting for your connection</p>
+        <div class="wire" aria-hidden="true"></div>
+      </div>
+      <div class="facts"><div><span>Your load</span><strong id="load">—</strong></div><div><span>Supply</span><strong id="supply">—</strong></div></div>
+      <div class="boardload" id="boardload" hidden>
+        <div class="boardload-row"><span>Your board <strong id="board-id">—</strong></span><strong id="board-pct">—</strong></div>
+        <div class="bar"><span id="board-bar"></span></div>
+      </div>
     </section>
-    <footer>One building. Every connection live.<br>Your equipment stays with you when you reload this page.</footer>
+
+    <section class="card" aria-labelledby="controls-title">
+      <h2 class="section" id="controls-title">Control it</h2>
+      <p class="section-sub">Everything you do is saved in MongoDB and shows on the big screen within a second.</p>
+      <button id="toggle" class="primary" disabled>Switch on / off</button>
+      <p class="hint">Turning on adds your load to your board.</p>
+      <button id="add" disabled>Add 5 kW</button>
+      <p class="hint">Push your board past 100% and it turns red for everyone.</p>
+      <div id="message" role="status" aria-live="polite"></div>
+      <button id="retry" hidden>Retry connection</button>
+    </section>
+
+    <section class="card" aria-labelledby="rewire-title">
+      <h2 class="section" id="rewire-title">Re-wire it</h2>
+      <p class="section-sub">Plug into a different board. Unsafe moves (wrong phase, a loop, an overload) get refused.</p>
+      <label for="board">Move to board</label>
+      <select id="board" disabled><option value="">Loading boards…</option></select>
+      <button id="rewire" disabled>Re-wire equipment</button>
+    </section>
+
+    <details class="howto">
+      <summary>What's going on?</summary>
+      <ol>
+        <li><strong>You are one real piece of equipment</strong> in a live building's power system, shown on the big screen.</li>
+        <li><strong>Power flows down from the main switchboard,</strong> through boards, to you. Find your tag on the big screen.</li>
+        <li><strong>If a board above you trips,</strong> your phone tells you you've lost power.</li>
+      </ol>
+    </details>
+    <footer>One building. Every connection live.<br>Your equipment stays with you if you reload this page.</footer>
   </main>
+
   <section id="outage" role="alertdialog" aria-modal="true" aria-labelledby="outage-title" aria-describedby="outage-detail" hidden tabindex="-1">
-    <div class="eyebrow">Supply interrupted</div><h2 id="outage-title">YOU'VE LOST POWER</h2>
-    <p id="outage-detail">An upstream board has tripped.</p><button id="dismiss">Back to equipment</button>
+    <div class="bolt" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z" /></svg></div>
+    <h2 id="outage-title">You've lost power</h2>
+    <div class="eyebrow">Supply interrupted</div>
+    <p id="outage-detail">An upstream board has tripped.</p>
+    <button id="dismiss">Back to my equipment</button>
   </section>
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -92,9 +189,20 @@
       el('tag').textContent = node._id;
       el('who').textContent = `You are ${node._id}, a ${node.ratedKW} kW ${node.name.toLowerCase()} fed from ${node.parentId}.`;
       el('load').textContent = `${node.loadKW} kW`;
-      el('supply').textContent = `${node.voltage} V · ${node.phases} phase`;
+      el('supply').textContent = `${node.voltage} V, ${node.phases}-phase`;
       el('toggle').textContent = node.on ? 'Switch off' : 'Switch on';
-      el('power').textContent = energised === false ? '● No power · upstream supply interrupted' : energised === null ? 'Checking supply…' : node.on ? '● Powered and switched on' : '○ Supply available · switched off';
+      el('status').dataset.state = energised === false ? 'dead' : energised === null ? 'checking' : node.on ? 'on' : 'off';
+      const myBoard = boards.find((b) => b._id === node.parentId);
+      el('boardload').hidden = !myBoard;
+      if (myBoard) {
+        const band = myBoard.loadPct > 100 ? 'red' : myBoard.loadPct >= 80 ? 'amber' : '';
+        el('board-id').textContent = myBoard._id;
+        el('board-pct').textContent = myBoard.tripped ? 'Tripped' : `${myBoard.loadPct}%`;
+        el('board-pct').className = myBoard.tripped ? 'red' : band;
+        el('board-bar').style.width = `${Math.min(myBoard.loadPct, 100)}%`;
+        el('board-bar').className = band;
+      }
+      el('power').textContent = energised === false ? 'No power: a board above you has tripped' : energised === null ? 'Checking supply…' : node.on ? 'Powered and switched on' : 'Power available, switched off';
     }
     function closeOutage() {
       el('outage').hidden = true;
@@ -120,7 +228,7 @@
       el('board').replaceChildren(...boards.map((b) => {
         const option = document.createElement('option');
         option.value = b._id;
-        option.textContent = `${b._id} · ${b.phases} phase · ${b.loadPct}%${b.tripped ? ' · TRIPPED' : ''}`;
+        option.textContent = `${b._id}  (${b.phases}-phase, ${b.tripped ? 'tripped' : `${b.loadPct}%`})`;
         return option;
       }));
       if (boards.some((b) => b._id === selected)) el('board').value = selected;
@@ -162,7 +270,7 @@
     el('dismiss').onclick = closeOutage;
     el('retry').onclick = () => { if (socket?.connected) synchronise(!node); else socket?.connect(); };
     if (socket) {
-      socket.on('connect', () => { el('connection').textContent = '● Live'; synchronise(true); });
+      socket.on('connect', () => { el('connection').textContent = 'Live'; synchronise(true); });
       socket.on('disconnect', () => { version++; ready = false; el('connection').textContent = 'Reconnecting…'; render(); });
       socket.on('connect_error', () => { el('connection').textContent = 'Connection unavailable'; message('Could not connect. Check your connection and retry.', true); el('retry').hidden = false; render(); });
       socket.on('node:changed', ({ node: changed }) => {
