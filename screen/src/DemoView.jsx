@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Background, Controls, ReactFlow, ReactFlowProvider, useNodesInitialized, useReactFlow } from '@xyflow/react';
 import { api, socket } from './api.js';
 import { edgeTypes, nodeTypes } from './FlowParts.jsx';
-import { deadSet, depthBelow, feedPath, layout, loadBand } from './layout.js';
+import { BOARD_H, BOARD_W, EQ_H, EQ_W, deadSet, depthBelow, feedPath, layout, loadBand } from './layout.js';
 import SidePanel from './SidePanel.jsx';
 import { Caption, narrate } from './Explainer.jsx';
 
@@ -163,6 +163,9 @@ function Demo({ onToast }) {
         id: n._id,
         type: n.type === 'board' ? 'board' : 'equip',
         position,
+        // Known sizes, so React Flow never hides a node (visibility: hidden) while it re-measures it.
+        initialWidth: n.type === 'board' ? BOARD_W : EQ_W,
+        initialHeight: n.type === 'board' ? BOARD_H : EQ_H,
         data: { node: n, pct: loads[n._id] ?? 0, cls, delay: delayFor(n._id) },
         draggable: false,
         connectable: false,
