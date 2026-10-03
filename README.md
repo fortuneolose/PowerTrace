@@ -140,6 +140,18 @@ npm run bot
 
 To let phones join from outside your laptop, expose port 3000 with a tunnel (for example `cloudflared tunnel --url http://localhost:3000`) and print a QR code with `npm run qr -- https://<your-tunnel-url>/join`.
 
+## Deploying
+
+MongoDB Atlas stores the data; the Node server (Express + Socket.IO + the change stream) needs a host that keeps
+a process running, so it is deployed to [Render](https://render.com) as one web service (`render.yaml`).
+That one service serves the main screen at `/`, the phone page at `/join`, the API at `/api` and Socket.IO.
+
+1. Render → New → Blueprint → pick this repo. It reads `render.yaml` (`npm run build`, then `npm start`).
+2. In the service's Environment tab set `MONGODB_URI` (Atlas → Network Access must allow `0.0.0.0/0`, as Render has no fixed IPs).
+3. `USE_MOCK=1` runs the in-memory mock instead of the backend (no database needed); set it to `0` once the backend is live.
+
+Serverless hosts such as Vercel can't hold the WebSocket connections and change stream open, so they are not used.
+
 ## Team
 
 | Who | Built |

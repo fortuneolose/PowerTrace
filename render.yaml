@@ -1,0 +1,24 @@
+# Render Blueprint: one Node web service serving the screen (/), phones (/join), the API and Socket.IO.
+# Render: New > Blueprint > pick this repo. Set MONGODB_URI in the dashboard (never in git).
+services:
+  - type: web
+    name: powertrace
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: main
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: MONGODB_URI
+        sync: false
+      - key: DEMO_DB
+        value: powertrace_demo
+      - key: HOSPITAL_DB
+        value: powertrace_hospital
+      # Set to 1 to run the in-memory mock instead of the real backend (no Atlas needed).
+      - key: USE_MOCK
+        value: "1"
