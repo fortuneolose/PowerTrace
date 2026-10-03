@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test:contract": "node test/contract.mjs",
+    "test": "node --test test/importer.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
