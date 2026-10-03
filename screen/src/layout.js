@@ -3,10 +3,10 @@
 // projector without shrinking the text to nothing.
 import dagre from '@dagrejs/dagre';
 
-export const BOARD_W = 184;
-export const BOARD_H = 84;
-export const EQ_W = 168;
-export const EQ_H = 32;
+export const BOARD_W = 196;
+export const BOARD_H = 96;
+export const EQ_W = 172;
+export const EQ_H = 34;
 export const EQ_GAP = 6;
 export const BUS_INSET = 18; // room on the left of a column for the bus bar
 export const BUS_DROP = 22;  // how far below a board the horizontal bus runs

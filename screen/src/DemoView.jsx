@@ -6,6 +6,7 @@ import { api, socket } from './api.js';
 import { edgeTypes, nodeTypes } from './FlowParts.jsx';
 import { deadSet, depthBelow, feedPath, layout, loadBand } from './layout.js';
 import SidePanel from './SidePanel.jsx';
+import { Caption, narrate } from './Explainer.jsx';
 
 const STEP_MS = 130;      // fault ripple delay per level
 const MOVE_MS = 750;      // re-wire glide
@@ -128,7 +129,7 @@ function Demo({ onToast }) {
   const initialised = useNodesInitialized();
   const fitted = useRef(false);
   useEffect(() => {
-    if (initialised && !fitted.current) { fitted.current = true; fitView({ padding: 0.06 }); }
+    if (initialised && !fitted.current) { fitted.current = true; fitView({ padding: { top: '92px', bottom: '84px', left: '24px', right: '24px' } }); }
   }, [initialised, fitView]);
 
   // --- What each node looks like right now ---
@@ -184,6 +185,7 @@ function Demo({ onToast }) {
           delay: delayFor(n._id),
           cls: [
             dead.has(n._id) && 'dead',
+            n.type === 'equipment' && !n.on && 'off',
             trace?.ids.has(n._id) && trace.ids.has(n.parentId) && 'trace',
             preview?.depth.has(n._id) && 'preview',
             moved === n._id && 'moved',
@@ -191,6 +193,7 @@ function Demo({ onToast }) {
         },
       }));
   }, [nodes, dead, trace, preview, moved, delayFor]);
+
 
   // --- Interactions ---
   const select = useCallback(async (id) => {
@@ -208,6 +211,11 @@ function Demo({ onToast }) {
   }, [onToast]);
 
   const clear = useCallback(() => { setSelected(null); setTrace(null); setPreview(null); }, []);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') clear(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [clear]);
 
   const showDownstream = useCallback(async (id) => {
     try {
@@ -238,6 +246,11 @@ function Demo({ onToast }) {
       if (e.status !== 409) onToast({ kind: 'reject', title: 'Request failed', text: e.message });
     }
   }, [onToast]);
+
+  // Narrate only when a new event arrives, using the loads at that moment.
+  const latest = feed[0];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const caption = useMemo(() => narrate(latest, nodesRef.current, loads), [latest]);
 
   const stats = useMemo(() => {
     if (!nodes) return null;
@@ -272,15 +285,16 @@ function Demo({ onToast }) {
           minZoom={0.2}
           maxZoom={2}
         >
-          <Background gap={40} color="#c9d3ce" variant="lines" />
-          <Controls showInteractive={false} position="bottom-left" />
+          <Background gap={22} size={1.4} color="#1d2632" variant="dots" />
+          <Controls showInteractive={false} position="top-left" />
         </ReactFlow>
+        {nodes && <Caption line={caption} />}
         {stats && (
           <dl className="stats" aria-label="Building summary">
             <div><dt>Equipment</dt><dd>{stats.equipment}</dd></div>
-            <div><dt>Phones connected</dt><dd>{stats.phones}</dd></div>
+            <div><dt>Phones in control</dt><dd className="blue">{stats.phones}</dd></div>
             <div className={stats.dark ? 'bad' : ''}><dt>Without power</dt><dd>{stats.dark}</dd></div>
-            <div className={stats.hot.length ? 'bad' : ''}><dt>Boards over 100%</dt><dd>{stats.hot.length ? stats.hot.join(', ') : 'None'}</dd></div>
+            <div className={stats.hot.length ? 'bad' : ''}><dt>Over capacity</dt><dd>{stats.hot.length ? stats.hot.join(', ') : 'None'}</dd></div>
           </dl>
         )}
       </section>

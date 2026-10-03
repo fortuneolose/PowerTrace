@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import { JOIN_URL } from './config.js';
+import { Explainer } from './Explainer.jsx';
 
 const time = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 
@@ -28,7 +29,7 @@ function describe(e) {
 function JoinCard() {
   const [qr, setQr] = useState(null);
   useEffect(() => {
-    QRCode.toDataURL(JOIN_URL, { margin: 1, width: 360, color: { dark: '#17232b', light: '#ffffff' } })
+    QRCode.toDataURL(JOIN_URL, { margin: 1, width: 360, color: { dark: '#0b0f15', light: '#ffffff' } })
       .then(setQr)
       .catch(() => setQr(null));
   }, []);
@@ -36,8 +37,8 @@ function JoinCard() {
     <section className="card join">
       {qr && <img src={qr} alt={`QR code for ${JOIN_URL}`} width="132" height="132" />}
       <div>
-        <h2>Become a piece of equipment</h2>
-        <p>Scan to get a real item in this building. Switch it, re-wire it, overload its board.</p>
+        <h2>Take control of the building</h2>
+        <p>Scan to become a real piece of equipment. Switch it, re-wire it, overload its board.</p>
         <p className="url">{JOIN_URL.replace(/^https?:\/\//, '')}</p>
       </div>
     </section>
@@ -69,15 +70,16 @@ function BoardDetail({ node, pct, trace, preview, nodes, loadBand, onSelect, onD
   return (
     <>
       <p className="detail-line">Level {node.level}, {node.phases}-phase {node.voltage} V, rated {node.capacityKW} kW</p>
-      <p className={`big ${node.tripped ? 'red' : loadBand(pct)}`}>
-        {node.tripped ? 'Tripped' : `${pct}%`}
-        <span>{node.tripped ? 'everything below is off' : `${kw} of ${node.capacityKW} kW`}</span>
-      </p>
+      <div className="metric">
+        <p className={`big ${node.tripped ? 'red' : loadBand(pct)}`}>{node.tripped ? 'Tripped' : `${pct}%`}</p>
+        <p className="metric-sub">{node.tripped ? 'Everything below this board is off' : `${kw} of ${node.capacityKW} kW drawn`}</p>
+        {!node.tripped && <div className="loadbar wide"><span className={loadBand(pct)} style={{ width: `${Math.min(pct, 100)}%` }} /></div>}
+      </div>
       <div className="actions">
         {node.tripped
-          ? <button type="button" className="btn" onClick={() => onTrip(node._id, false)}>Reset board</button>
+          ? <button type="button" className="btn primary" onClick={() => onTrip(node._id, false)}>Reset board</button>
           : <button type="button" className="btn danger" onClick={() => onTrip(node._id, true)}>Trip board</button>}
-        <button type="button" className="btn ghost" onClick={() => onDownstream(node._id)}>Show what loses power</button>
+        <button type="button" className="btn" onClick={() => onDownstream(node._id)}>Show what loses power</button>
       </div>
       {preview?.id === node._id && (
         <div className="impact">
@@ -112,7 +114,7 @@ function EquipDetail({ node, trace, nodes, boards, onSelect, onRewire }) {
             <option key={b._id} value={b._id}>{b._id} ({b.phases}-phase)</option>
           ))}
         </select>
-        <button type="submit" className="btn" disabled={!target}>Move</button>
+        <button type="submit" className="btn primary" disabled={!target}>Move</button>
       </form>
     </>
   );
@@ -132,7 +134,7 @@ export default function SidePanel({ nodes, loads, selected, trace, preview, feed
           <>
             <div className="sel-head">
               <h2>{node._id}</h2>
-              <button type="button" className="btn ghost small" onClick={onClear}>Close</button>
+              <button type="button" className="btn ghost small" onClick={onClear} aria-label="Close selection">Esc</button>
             </div>
             <p className="muted">{node.name}</p>
             {node.type === 'board'
@@ -140,15 +142,16 @@ export default function SidePanel({ nodes, loads, selected, trace, preview, feed
               : <EquipDetail node={node} trace={trace} nodes={nodes} boards={boards} onSelect={onSelect} onRewire={onRewire} />}
           </>
         ) : (
-          <p className="hint">Select any board or piece of equipment to trace its supply back to the main switchboard.</p>
+          <Explainer />
         )}
       </section>
       <section className="card feed">
-        <h3>Activity</h3>
+        <div className="feed-head"><h3>Activity</h3><span className="muted">{feed.length ? `${feed.length} changes` : ''}</span></div>
         {feed.length === 0 && <p className="muted">Changes from phones and the presenter appear here as they happen.</p>}
         <ol>
           {feed.map((e, i) => (
             <li key={`${e.ts}-${i}`} className={`act-${e.action}`}>
+              <span className="dot" aria-hidden="true" />
               <time>{time(e.ts)}</time>
               <span className="what">{describe(e)}</span>
               <span className="who">{whoLabel(e.who)}</span>

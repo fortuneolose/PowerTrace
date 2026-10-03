@@ -27,3 +27,10 @@ column, like the ways on a panel schedule, so all 60 nodes fit on a projector.
 **`#/hospital` Scale view.** Levels are collapsed; only boards are listed (equipment is counted, never
 rendered). Picking a board calls `GET /api/impact/:id?site=hospital` and shows counts, critical loads and
 the `$graphLookup` time.
+
+## Presenting
+
+- **Present** (or press `F`) puts the screen in full screen. `Esc` clears a selection.
+- With nothing selected, the side rail shows a "How this works" explainer for the audience.
+- The caption at the top of the diagram narrates every change in plain English.
+- The QR code points at `<this page's origin>/join`, so open the screen from the public URL (Render or the tunnel), not localhost, when phones need to join.
