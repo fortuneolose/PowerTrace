@@ -339,10 +339,10 @@ api.post('/import', route(async (req, res) => {
   }
   const t0 = performance.now();
   const replace = req.query.replace === 'true';
-  const existingIds = replace ? new Set() : new Set(site.nodes.map((n) => n._id));
+  const existingNodes = replace ? [] : site.nodes;
   let parsed;
   try {
-    parsed = await parseSchedule(req.body, { existingIds });
+    parsed = await parseSchedule(req.body, { existingNodes });
   } catch (err) {
     throw badRequest(err.message); // e.g. a CSV with missing columns: reject the file, don't crash
   }

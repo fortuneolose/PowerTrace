@@ -1,0 +1,160 @@
+{
+  "total": 4269,
+  "imported": 4245,
+  "rejectedCount": 24,
+  "byCode": {
+    "MISSING_RATING": 6,
+    "DUPLICATE_TAG": 5,
+    "INVALID_VOLTAGE": 3,
+    "UNKNOWN_TYPE": 2,
+    "PHASE_MISMATCH": 3,
+    "CIRCULAR_FEED": 3,
+    "UNKNOWN_FEEDER": 2
+  },
+  "rejected": [
+    {
+      "row": 190,
+      "tag": "LTG-L1-007",
+      "code": "MISSING_RATING",
+      "reason": "missing rated_kw"
+    },
+    {
+      "row": 703,
+      "tag": "FCU-L2-001",
+      "code": "MISSING_RATING",
+      "reason": "missing rated_kw"
+    },
+    {
+      "row": 763,
+      "tag": "LTG-L1-004",
+      "code": "DUPLICATE_TAG",
+      "reason": "duplicate tag LTG-L1-004"
+    },
+    {
+      "row": 949,
+      "tag": "MCP-L3-001",
+      "code": "UNKNOWN_TYPE",
+      "reason": "unknown type \"panel\" (must be board or equipment)"
+    },
+    {
+      "row": 1000,
+      "tag": "SP-L3-080",
+      "code": "INVALID_VOLTAGE",
+      "reason": "invalid voltage 240 (must be 230 or 400)"
+    },
+    {
+      "row": 1146,
+      "tag": "LTG-L3-014",
+      "code": "DUPLICATE_TAG",
+      "reason": "duplicate tag LTG-L3-014"
+    },
+    {
+      "row": 1186,
+      "tag": "LTG-L4-054",
+      "code": "UNKNOWN_FEEDER",
+      "reason": "unknown feeder DB-L14-01"
+    },
+    {
+      "row": 1199,
+      "tag": "BHP-L4-001",
+      "code": "MISSING_RATING",
+      "reason": "missing rated_kw"
+    },
+    {
+      "row": 1363,
+      "tag": "SP-L4-073",
+      "code": "UNKNOWN_FEEDER",
+      "reason": "unknown feeder DB-L14-01"
+    },
+    {
+      "row": 1586,
+      "tag": "SP-L4-031",
+      "code": "DUPLICATE_TAG",
+      "reason": "duplicate tag SP-L4-031"
+    },
+    {
+      "row": 1713,
+      "tag": "AHU-L5-002",
+      "code": "PHASE_MISMATCH",
+      "reason": "DB-L5-02A is single-phase"
+    },
+    {
+      "row": 2026,
+      "tag": "IHW-L6-003",
+      "code": "PHASE_MISMATCH",
+      "reason": "DB-L6-03C is single-phase"
+    },
+    {
+      "row": 2092,
+      "tag": "SP-L6-079",
+      "code": "UNKNOWN_TYPE",
+      "reason": "unknown type \"equip.\" (must be board or equipment)"
+    },
+    {
+      "row": 2220,
+      "tag": "DB-L7-X2",
+      "code": "CIRCULAR_FEED",
+      "reason": "feed loops back on itself (DB-L7-X2 -> DB-L7-X1 -> DB-L7-X2)"
+    },
+    {
+      "row": 2285,
+      "tag": "DB-L7-X1",
+      "code": "CIRCULAR_FEED",
+      "reason": "feed loops back on itself (DB-L7-X1 -> DB-L7-X2 -> DB-L7-X1)"
+    },
+    {
+      "row": 2462,
+      "tag": "FCU-L7-034",
+      "code": "MISSING_RATING",
+      "reason": "missing rated_kw"
+    },
+    {
+      "row": 2599,
+      "tag": "DIA-L6-002",
+      "code": "DUPLICATE_TAG",
+      "reason": "duplicate tag DIA-L6-002"
+    },
+    {
+      "row": 2967,
+      "tag": "DB-L9-X1",
+      "code": "CIRCULAR_FEED",
+      "reason": "feed loops back on itself (DB-L9-X1 -> DB-L9-X1)"
+    },
+    {
+      "row": 3052,
+      "tag": "EF-L9-003",
+      "code": "INVALID_VOLTAGE",
+      "reason": "invalid voltage 415 (must be 230 or 400)"
+    },
+    {
+      "row": 3259,
+      "tag": "LTG-L10-019",
+      "code": "MISSING_RATING",
+      "reason": "missing rated_kw"
+    },
+    {
+      "row": 3369,
+      "tag": "EF-L8-009",
+      "code": "DUPLICATE_TAG",
+      "reason": "duplicate tag EF-L8-009"
+    },
+    {
+      "row": 3673,
+      "tag": "KIT-L11-004",
+      "code": "PHASE_MISMATCH",
+      "reason": "DB-L11-01A is single-phase"
+    },
+    {
+      "row": 3866,
+      "tag": "LTG-L12-013",
+      "code": "MISSING_RATING",
+      "reason": "missing rated_kw"
+    },
+    {
+      "row": 3953,
+      "tag": "SP-L12-032",
+      "code": "INVALID_VOLTAGE",
+      "reason": "invalid voltage 110 (must be 230 or 400)"
+    }
+  ]
+}

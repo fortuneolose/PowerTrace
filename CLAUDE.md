@@ -46,6 +46,8 @@ The repo is private during the event but is made public for judging, and git his
 - `.env` is loaded from the repo root (`dotenv.config({ path: '../.env' })`-style; see `backend/src/config.js`).
 - Keep it boring and working. Feature freeze at **15:15**: after that, only bug fixes.
 - Run what you build before you push (start the server, open the page, click the button).
+- `npm test` at the repo root must pass before anything is merged to `main`. Add tests for your own folder
+  (`node --test`, no extra frameworks) and wire them into the root `test` script via the lead.
 
 ## Useful files
 

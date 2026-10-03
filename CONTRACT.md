@@ -365,7 +365,9 @@ Response `200`:
 ```
 
 Rejection codes: `MISSING_RATING`, `DUPLICATE_TAG`, `INVALID_VOLTAGE`, `UNKNOWN_TYPE`, `PHASE_MISMATCH`,
-`CIRCULAR_FEED`, `UNKNOWN_FEEDER`. The expected result for `data/messy-schedule.csv` is in
+`CIRCULAR_FEED`, `UNKNOWN_FEEDER`, and `INVALID_ROW` (missing tag or non-integer level; not in the test file).
+A file missing a required column is rejected as a whole with `400 BAD_REQUEST` and nothing is changed.
+The reference importer is `parseSchedule()` in `data/lib/schedule.js` (see `data/README.md`). The expected result for `data/messy-schedule.csv` is in
 `data/messy-schedule.expected.json`; use it as the importer's test.
 
 ### `GET /api/history?site=hospital&level=5&days=7` *(cut first if short on time)*

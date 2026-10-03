@@ -220,6 +220,34 @@ check('import of a CSV missing columns -> 400 BAD_REQUEST (schedule.js present) 
 r = await call('GET', '/api/tree?site=hospital');
 check('tree?site=hospital -> 200', r.status === 200 && r.json.site === 'hospital' && Array.isArray(r.json.nodes), r.text.slice(0, 200));
 console.log(`      hospital: ${r.json.nodes.length} nodes`);
+check('hospital: 4,257 nodes after the bad import left it untouched', r.json.nodes.length === 4257, `${r.json.nodes.length}`);
+r = await call('GET', '/api/tree?site=hospital&level=5');
+check('hospital tree?level=5 -> only level-5 nodes', r.status === 200 && r.json.nodes.length > 0 && r.json.nodes.every((n) => n.level === 5));
+
+r = await call('GET', '/api/impact/DB-L5-02?site=hospital');
+const imp = r.json;
+check('hospital impact DB-L5-02 -> 70 affected (4 boards, 66 equipment), 15 critical',
+  r.status === 200 && imp.counts.total === 70 && imp.counts.boards === 4 && imp.counts.equipment === 66 && imp.counts.critical === 15, JSON.stringify(imp.counts));
+check('hospital impact flags the theatre lights', ['THL-L5-001', 'THL-L5-003'].every((id) => imp.critical.some((c) => c._id === id)));
+check('hospital impact reports queryMs', typeof imp.queryMs === 'number');
+
+r = await call('GET', '/api/history?site=hospital&level=5');
+check('hospital history?level=5 -> a week of Level 5 changes', r.status === 200 && r.json.recent.length > 0 && r.json.recent.every((e) => e.level === 5) && r.json.byWho.length > 0, r.text.slice(0, 200));
+
+// the real messy cable schedule, imported into an empty hospital
+const fs = await import('node:fs');
+const csvText = fs.readFileSync(new URL('../../data/messy-schedule.csv', import.meta.url), 'utf8');
+const expectedImport = JSON.parse(fs.readFileSync(new URL('../../data/messy-schedule.expected.json', import.meta.url), 'utf8'));
+mark = s.log.length;
+r = await call('POST', '/api/import?site=hospital&replace=true', { raw: csvText, headers: { ...H, 'Content-Type': 'text/csv' } });
+check(`import messy-schedule.csv -> ${expectedImport.imported} imported, ${expectedImport.rejectedCount} rejected (matches expected.json)`,
+  r.status === 200 && r.json.total === expectedImport.total && r.json.imported === expectedImport.imported
+  && eq(r.json.rejected.map((x) => [x.row, x.tag, x.code]), expectedImport.rejected.map((x) => [x.row, x.tag, x.code])), r.text.slice(0, 300));
+check('import -> tree:reload { site: hospital }', !!(await waitFor(s, mark, 'tree:reload', (p) => p.site === 'hospital')));
+r = await call('GET', '/api/impact/DB-L5-02?site=hospital');
+check('shutdown report still works on the imported hospital', r.status === 200 && r.json.counts.total === 70 && r.json.counts.critical === 15, JSON.stringify(r.json.counts));
+r = await call('POST', '/api/import?site=hospital', { raw: csvText, headers: { ...H, 'Content-Type': 'text/csv' } });
+check('re-import without replace -> nothing imported (duplicates, bad rows, and phase checks against existing boards)', r.status === 200 && r.json.imported === 0, `${r.json?.imported}`);
 
 // misc
 r = await fetch(`${BASE}/api/nodes/AHU-07/load`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{bad json' });
