@@ -24,6 +24,7 @@ export const api = {
   traceDown: (id, site = 'demo') => request('GET', `/api/trace/down/${encodeURIComponent(id)}?site=${site}`),
   impact: (id) => request('GET', `/api/impact/${encodeURIComponent(id)}?site=hospital`),
   trip: (id, tripped) => request('POST', `/api/boards/${encodeURIComponent(id)}/trip`, tripped === undefined ? {} : { tripped }),
+  toggle: (id, on) => request('POST', `/api/nodes/${encodeURIComponent(id)}/toggle`, on === undefined ? {} : { on }),
   rewire: (id, parentId) => request('POST', `/api/nodes/${encodeURIComponent(id)}/rewire`, { parentId }),
   reset: () => request('POST', '/api/reset?site=demo'),
 };

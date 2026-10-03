@@ -306,3 +306,12 @@ strong.red, .hpct.red, .is-tripped { color: var(--fault); }
 @keyframes caption-in { from { opacity: 0; transform: translate(-50%, -8px); } }
 @keyframes beacon-blue { 70% { box-shadow: 0 0 0 8px rgb(90 169 255 / 0); } }
 .react-flow__controls.top-left { top: 4px; }
+
+/* ---------- Plain-English command box ---------- */
+.command form { display: flex; gap: 8px; margin-top: 8px; }
+.command input { flex: 1; min-width: 0; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--canvas); color: var(--text); font: inherit; font-size: 13.5px; }
+.command-examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.command-examples .btn { height: 26px; padding: 0 8px; font-size: 12px; font-family: var(--mono); }
+.command-result { margin: 10px 0 0; font-size: 13px; padding-left: 10px; border-left: 3px solid var(--line-strong); }
+.command-result.ok { border-left-color: var(--ok); }
+.command-result.no { border-left-color: var(--fault); }
