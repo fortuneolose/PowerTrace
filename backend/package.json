@@ -6,7 +6,7 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "test:contract": "node test/contract.mjs",
-    "test": "node --test test/importer.test.js"
+    "test": "node --test test/importer.test.js test/command.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

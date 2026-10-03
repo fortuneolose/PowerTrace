@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PowerTrace Control</title>
+<style>
+  :root { --paper: #f6f6ef; --ink: #1b1b16; --muted: #66665c; --rule: #d6d6ca; --orange: #ff6600; --good: #2f7d4f; --bad: #b3261e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.45 "Helvetica Neue", Arial, sans-serif; padding: 24px 16px 40px; }
+  main { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .eyebrow { font: 500 13px ui-monospace, Menlo, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; color: #b84a00; }
+  h1 { margin: 0; font-size: 34px; line-height: 1.05; letter-spacing: -.02em; }
+  p.sub { margin: 0; color: var(--muted); }
+  form { display: flex; gap: 8px; }
+  input { flex: 1; min-width: 0; font: inherit; font-size: 18px; padding: 14px 16px; border: 2px solid var(--ink); background: #fff; color: var(--ink); }
+  button { font: inherit; font-weight: 700; font-size: 17px; padding: 0 20px; border: 2px solid var(--orange); background: var(--orange); color: var(--ink); cursor: pointer; }
+  button:disabled { opacity: .5; cursor: wait; }
+  input:focus-visible, button:focus-visible, .chip:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: 14px ui-monospace, Menlo, Consolas, monospace; padding: 8px 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+  ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  li { border-left: 4px solid var(--rule); background: #fff; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+  li.ok { border-left-color: var(--good); } li.no { border-left-color: var(--bad); }
+  .said { font-weight: 700; }
+  .what { font: 13px ui-monospace, Menlo, Consolas, monospace; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">PowerTrace · operator</div>
+  <h1>Tell the building what to do.</h1>
+  <p class="sub" id="sub">Plain English. Every command becomes one validated action on the live demo building, and phones fed from it find out instantly.</p>
+  <form id="f">
+    <label for="t" hidden>Command</label>
+    <input id="t" autocomplete="off" placeholder="Route power away from DB-L3-01" required>
+    <button id="go" type="submit">Run</button>
+  </form>
+  <div class="chips" id="chips"></div>
+  <ol id="log"></ol>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const log = $('log');
+  function add(cls, said, msg, what) {
+    const li = document.createElement('li');
+    li.className = cls;
+    li.innerHTML = '<span class="said"></span><span class="msg"></span><span class="what"></span>';
+    li.querySelector('.said').textContent = '“' + said + '”';
+    li.querySelector('.msg').textContent = msg;
+    li.querySelector('.what').textContent = what || '';
+    log.prepend(li);
+  }
+  async function run(text) {
+    $('go').disabled = true;
+    try {
+      const r = await fetch('/api/command', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Who': 'operator' }, body: JSON.stringify({ text }) });
+      const j = await r.json();
+      const u = j.understood;
+      const what = u ? `${j.by === 'claude' ? 'Claude' : 'keyword parser'} → ${u.action} ${u.target}${u.to ? ' → ' + u.to : ''}${u.on !== undefined ? (u.on ? ' on' : ' off') : ''}` : (j.by ? `${j.by === 'claude' ? 'Claude' : 'keyword parser'}: not understood` : '');
+      add(j.ok ? 'ok' : 'no', text, j.message || j.error || 'Something went wrong.', what);
+    } catch (e) {
+      add('no', text, 'Could not reach the PowerTrace server.', '');
+    } finally {
+      $('go').disabled = false;
+    }
+  }
+  $('f').addEventListener('submit', (e) => { e.preventDefault(); const t = $('t').value.trim(); if (t) { run(t); $('t').value = ''; } });
+  fetch('/api/command/examples').then((r) => r.json()).then((j) => {
+    for (const ex of j.examples) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = ex;
+      b.addEventListener('click', () => { $('t').value = ex; $('t').focus(); });
+      $('chips').append(b);
+    }
+    if (j.ai) $('sub').textContent += ' Commands are read by Claude.';
+  }).catch(() => {});
+</script>
+</body>
+</html>

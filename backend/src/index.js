@@ -13,6 +13,7 @@ import { connect, getDb, SITES } from './db.js';
 import { ensureSchema } from './schema.js';
 import { DOWN, downstreamOf, upstreamOf, isEnergised, boardLoads, contributionKW, explainMillis } from './graph.js';
 import { createRealtime } from './realtime.js';
+import { parseCommand, parseWithClaude, toRequest, describe, EXAMPLES } from './command.js';
 import { CsvError, prepare, importRows } from './importer.js';
 import { getDemoNodes } from '../../data/demo-building.js';
 
@@ -392,6 +393,26 @@ api.post('/reset', route(async (req, res) => {
   res.json({ ok: true, nodes: fresh.length });
 }));
 
+// Plain-English operator command (demo site). Turned into ONE existing action and executed through that
+// action's own route, so validation, events and live updates are identical to pressing the button.
+api.get('/command/examples', (req, res) => res.json({ examples: EXAMPLES, ai: !!process.env.ANTHROPIC_API_KEY }));
+api.post('/command', route(async (req, res) => {
+  const text = typeof body(req).text === 'string' ? body(req).text.trim().slice(0, 300) : '';
+  if (!text) throw badRequest('Body must be { "text": "route power away from DB-L3-01" }');
+  const nodes = getDb('demo').collection('nodes');
+  const byId = new Map((await nodes.find({}, { projection: { type: 1 } }).toArray()).map((n) => [n._id, n]));
+  let by = 'claude';
+  let cmd = await parseWithClaude(text, byId);
+  if (!cmd) { by = 'rules'; cmd = parseCommand(text, byId); }
+  if (cmd.error) return res.status(422).json({ text, by, understood: null, ok: false, message: cmd.error });
+  const call = toRequest(cmd);
+  const headers = { 'Content-Type': 'application/json', 'X-Who': 'operator' };
+  if (req.get('X-Socket-Id')) headers['X-Socket-Id'] = req.get('X-Socket-Id');
+  const r = await fetch(`http://127.0.0.1:${config.port}${call.path}`, { method: 'POST', headers, body: JSON.stringify(call.body) });
+  const json = await r.json().catch(() => null);
+  res.status(r.ok ? 200 : r.status).json({ text, by, understood: cmd, ok: r.ok, message: describe(cmd, r.status, json), result: json });
+}));
+
 api.use((req, res) => res.status(404).json({ error: `No route ${req.method} /api${req.path}`, code: 'NOT_FOUND' }));
 app.use('/api', api);
 
@@ -401,9 +422,10 @@ const screenDist = fileURLToPath(new URL('../../screen/dist', import.meta.url));
 app.use('/join', express.static(joinDir));
 const pitchDir = fileURLToPath(new URL('../../pitch', import.meta.url));
 app.use('/pitch', express.static(pitchDir)); // the 3-minute deck; its QR points at this server's /join
+app.get('/control', (req, res) => res.sendFile(fileURLToPath(new URL('./control.html', import.meta.url)))); // operator command page
 if (fs.existsSync(screenDist)) {
   app.use(express.static(screenDist));
-  app.get(/^\/(?!api|socket\.io|join|pitch).*/, (req, res) => res.sendFile(`${screenDist}/index.html`));
+  app.get(/^\/(?!api|socket\.io|join|pitch|control).*/, (req, res) => res.sendFile(`${screenDist}/index.html`));
 } else {
   app.get('/', (req, res) => res.type('text').send('PowerTrace backend: API at /api, phones at /join. Run the screen with `npm run screen`.'));
 }
